@@ -59,4 +59,14 @@ tests/_tmp_dogfood_input.json
 
 # Persistent Chrome profile for institutional-access (cookies, history)
 .claude/skills/institutional-access/state/chrome_profile/
+
+# Plugin build artifacts (timestamped + variant builds)
 coscientist-cowork.zip
+coscientist-cowork-*.zip
+coscientist-*.plugin
+coscientist.plugin
+validate_plugin.py
+
+# Scratch / one-off research notes (not for repo)
+cancer-research-phase0.md
+ziXH4nRf

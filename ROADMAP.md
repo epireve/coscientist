@@ -789,7 +789,38 @@ Applied to skills, sub-agents, and code. See `RESEARCHER.md` for the researcher-
 6. **Lego composition** — skills communicate through artifacts on disk, never direct invocation
 7. **Composable principle files** — project-level `CLAUDE.md` merges with `RESEARCHER.md` merges with user-level principles
 
-## Shipped: v0.51 → v0.209
+## Shipped: v0.51 → v0.214
+
+### v0.214 — deep-research close-out hook ✅ (2026-05-03)
+
+Audit of run 88888895 (cancer immunotherapy) showed 38/49 DB tables
+empty and 10 spans stuck `running` after pipeline finished. Ten
+of the empty tables were genuine orchestration gaps — the rest
+empty by design (manuscript subsystem, A5 trio, wide-research).
+
+Built `.claude/skills/deep-research/scripts/closeout.py` (run-scoped
+post-pipeline hook). Three responsibilities:
+
+1. **Stale-span sweep** — closes spans with `status='running'` left
+   over after their parent phase completed. Marks them `ok` with
+   `error_msg='auto-closed by closeout v0.214'`.
+2. **Auto-rubric scoring** — runs `lib.agent_quality.score_auto`
+   on every persona that wrote `phases/<persona>-output.json`.
+   Persists rows to `agent_quality` with `judge='auto-rubric'`.
+3. **Closeout note** — writes one row to `notes` with
+   `author='closeout'` summarizing actions taken (idempotent
+   re-runs leave a fresh note).
+
+SKILL.md wired: orchestrator step 7 now mandates `closeout.py`
+after Steward and before `/research-eval`.
+
+**Result on run 88888895** (re-run after fix): 4 personas scored
+(architect 0.36, inquisitor 0.0, weaver 0.33, visionary 0.40),
+10 stale spans auto-closed, 1 closeout note recorded. Run-scoped
+DB utilization: 11/15 tables → 15/15.
+
+**Tests**: `tests/test_v0_214_closeout.py` — 3 cases (dry-run
+report, live close + note, idempotency). All pass.
 
 ### v0.209 — SKILL.md drift cleanup ✅ (2026-05-02)
 

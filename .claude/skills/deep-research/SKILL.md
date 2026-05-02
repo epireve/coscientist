@@ -192,7 +192,20 @@ When you (the calling Claude agent) run this skill:
    matches when invoked. Off by default (full back-compat).
 5. **At break points**, stop the pipeline. Use `AskUserQuestion` to prompt the user. Record their input via `db.py record-break`. Do not proceed until resolved.
 6. **If any agent errors or returns low-confidence output**, record the error and prompt the user — do not silently skip a phase.
-7. **On completion**, the final Scribe phase produces the artifacts; the orchestrator runs `/research-eval` automatically before marking the run complete.
+7. **On completion**, the final Steward phase produces the artifacts. The orchestrator then **MUST** run two close-out steps before marking the run complete:
+
+   ```bash
+   # v0.214: post-pipeline close-out — populates run-scoped DB tables
+   # left empty by phase orchestration (agent_quality, notes; closes
+   # stale spans). Idempotent. Always run on the same run_id once all
+   # 10 phases are complete.
+   uv run python .claude/skills/deep-research/scripts/closeout.py \
+     --run-id <run_id>
+
+   # /research-eval audit (claim attribution + reference quality)
+   uv run python .claude/skills/research-eval/scripts/eval_references.py \
+     --run-id <run_id>
+   ```
 
 ## Configuration (`config.json`)
 
