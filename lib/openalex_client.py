@@ -292,21 +292,54 @@ class OpenAlexClient:
         )
         result: Any
         error: str | None = None
+        # v0.221 — retry transient failures (HTTP 429/5xx, network).
+        from lib.retry import retry_with_backoff
+
+        class _Transient(Exception):
+            pass
+
+        def _do_request():
+            try:
+                with urllib.request.urlopen(
+                    req, timeout=self.timeout,
+                ) as resp:
+                    body = resp.read().decode("utf-8")
+                return json.loads(body)
+            except urllib.error.HTTPError as e:
+                if e.code == 429 or 500 <= e.code < 600:
+                    raise _Transient(f"HTTP {e.code}") from e
+                raise
+            except (urllib.error.URLError, TimeoutError, OSError) as e:
+                raise _Transient(f"network: {e}") from e
+
         try:
-            with urllib.request.urlopen(
-                req, timeout=self.timeout,
-            ) as resp:
-                body = resp.read().decode("utf-8")
-            result = json.loads(body)
+            result = retry_with_backoff(
+                _do_request,
+                max_attempts=3,
+                base_delay=1.0,
+                max_delay=8.0,
+                retryable=(_Transient,),
+            )
+        except _Transient as e:
+            cause = e.__cause__
+            if isinstance(cause, urllib.error.HTTPError):
+                try:
+                    err_body = cause.read().decode("utf-8", errors="replace")
+                except Exception:
+                    err_body = ""
+                error = (
+                    f"HTTP {cause.code}: {err_body[:200]} "
+                    f"(retries exhausted)"
+                )
+            else:
+                error = f"network error: {cause or e} (retries exhausted)"
+            result = {"error": error, "retries_exhausted": True}
         except urllib.error.HTTPError as e:
             try:
                 err_body = e.read().decode("utf-8", errors="replace")
             except Exception:
                 err_body = ""
             error = f"HTTP {e.code}: {err_body[:200]}"
-            result = {"error": error}
-        except (urllib.error.URLError, TimeoutError, OSError) as e:
-            error = f"network error: {e}"
             result = {"error": error}
         except json.JSONDecodeError as e:
             error = f"JSON decode error: {e}"

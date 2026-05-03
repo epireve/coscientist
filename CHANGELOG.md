@@ -11,6 +11,48 @@ generator output, so a stale `CHANGELOG.md` will fail CI.
 
 Versions are listed newest first.
 
+## v0.221 — per-MCP retry with backoff on s2 + openalex (2026-05-03)
+
+Audit deferred item #1. `lib/retry.py` already existed since
+v0.13 (`retry_with_backoff` + `aretry_with_backoff`) but had
+zero callers. v0.221 wires it into the two real HTTP clients.
+
+**Wraps `urllib.request.urlopen` in:**
+- `lib/s2_enrichment.py` — Semantic Scholar API
+- `lib/openalex_client.py` — OpenAlex API
+
+**Retry policy** (both clients):
+- max_attempts=3, base_delay=1.0s, max_delay=8.0s, full jitter
+- Retryable: HTTP 429 (rate-limit), HTTP 5xx, network errors
+  (URLError, OSError, TimeoutError)
+- Non-retryable (immediate return): HTTP 4xx-other (404, 400, …)
+- On exhaustion: returns `{"error": ..., "retries_exhausted": true}`
+  so callers can distinguish "transient gave up" from "definitive
+  4xx" without parsing strings.
+
+Wrapping uses a private `_Transient` sentinel class fed to
+`retryable=` so `retry_with_backoff` gates on type only — keeps
+existing 4xx handling path untouched.
+
+Trace integration unchanged: each successful or final-failed call
+still emits via `lib.trace.maybe_emit_tool_call`. Intermediate
+retry attempts not traced (avoids span bloat); the final outcome
+is what matters for diagnostics.
+
+**Tests**: `tests/test_v0_221_mcp_retry.py` — 9 cases:
+- 3 S2 (429 retry-then-succeed, 503 exhausted, 404 no-retry)
+- 2 OpenAlex (500 exhausted, 400 no-retry)
+- 4 retry-helper unit (succeed first, retry-then-succeed,
+  exhausted-raises, non-retryable-passes-through)
+
+All pass. Full suite 2602/2602 green.
+
+**Audit findings still open** (deferred):
+- Partial-phase checkpointing (scout 5/10 papers → restart 0)
+- Unit tests for 30 lib modules (covered via integration only)
+- `health.py` 840-line refactor to 3 modules
+- CLAUDE.md 268-line compress to <200
+
 ## v0.220 — phases retry telemetry + repo declutter (2026-05-03)
 
 Audit response. Three issues raised:

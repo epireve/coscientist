@@ -256,9 +256,42 @@ class S2Client:
         req = urllib.request.Request(
             url, data=data, headers=headers, method=method,
         )
-        try:
+        # v0.221 — retry transient failures (HTTP 429/5xx, network).
+        # 4xx-other returned as-is, no retry.
+        from lib.retry import retry_with_backoff
+
+        def _do_request():
             with urllib.request.urlopen(req, timeout=self._timeout) as resp:
-                payload = json.loads(resp.read().decode("utf-8"))
+                return json.loads(resp.read().decode("utf-8"))
+
+        def _is_transient_http(exc: BaseException) -> bool:
+            if isinstance(exc, urllib.error.HTTPError):
+                return exc.code == 429 or 500 <= exc.code < 600
+            return isinstance(
+                exc, (urllib.error.URLError, OSError, TimeoutError),
+            )
+
+        class _Transient(Exception):
+            """Sentinel — retry helper gates on type only."""
+
+        def _wrapped():
+            try:
+                return _do_request()
+            except urllib.error.HTTPError as e:
+                if _is_transient_http(e):
+                    raise _Transient(f"HTTP {e.code}: {e.reason}") from e
+                raise
+            except (urllib.error.URLError, OSError, TimeoutError) as e:
+                raise _Transient(f"network: {e}") from e
+
+        try:
+            payload = retry_with_backoff(
+                _wrapped,
+                max_attempts=3,
+                base_delay=1.0,
+                max_delay=8.0,
+                retryable=(_Transient,),
+            )
             _maybe_emit_tool_call(
                 tool_name=f"s2/{path.strip('/')}",
                 args_summary=json.dumps(
@@ -267,6 +300,24 @@ class S2Client:
             )
             self._cache_put(cache_key, payload)
             return payload
+        except _Transient as e:
+            # Exhausted all retries — preserve original transient label.
+            cause = e.__cause__
+            if isinstance(cause, urllib.error.HTTPError):
+                err = {"error": f"HTTP {cause.code}: {cause.reason}",
+                       "status": cause.code,
+                       "retries_exhausted": True}
+            else:
+                err = {"error": f"network: {cause or e}",
+                       "retries_exhausted": True}
+            _maybe_emit_tool_call(
+                tool_name=f"s2/{path.strip('/')}",
+                args_summary=json.dumps(
+                    {"params": params or {}, "ids": _ids_summary(body)}),
+                result_summary=json.dumps(err),
+                error=err["error"],
+            )
+            return err
         except urllib.error.HTTPError as e:
             err = {"error": f"HTTP {e.code}: {e.reason}",
                    "status": e.code}
