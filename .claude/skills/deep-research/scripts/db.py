@@ -391,6 +391,15 @@ def cmd_record_phase(args: argparse.Namespace) -> None:
                 (args.run_id, args.phase),
             )
     con.close()
+    # v0.225 — clear within-phase checkpoints AFTER the phases
+    # transaction commits + connection closes (avoids WAL writer
+    # contention with the helper's separate connection).
+    if getattr(args, "retry", False):
+        try:
+            from lib.phase_checkpoint import clear_phase
+            clear_phase(args.run_id, args.phase)
+        except Exception:
+            pass
     # v0.93a — emit a v0.89 trace span mirror for live debugging.
     _emit_phase_span(args.run_id, args.phase,
                      start=args.start, complete=args.complete,
@@ -911,12 +920,29 @@ def cmd_resume(args: argparse.Namespace) -> None:
             ),
         })
 
+    # v0.225 — surface within-phase checkpoint progress for the
+    # next-incomplete phase so the orchestrator knows whether to
+    # resume from unit N or restart from 0.
+    next_incomplete = next(
+        (p for p in phases if p["completed_at"] is None), None,
+    )
+    checkpoint_progress: dict | None = None
+    if next_incomplete is not None:
+        try:
+            from lib.phase_checkpoint import progress
+            checkpoint_progress = progress(
+                args.run_id, next_incomplete["name"],
+            )
+        except Exception:
+            checkpoint_progress = None
+
     print(json.dumps({
         "run_id": args.run_id,
         "question": run["question"],
         "status": run["status"],
         "phases": [dict(r) for r in phases],
         "harvests": harvest_status,
+        "checkpoint_progress": checkpoint_progress,
     }, indent=2))
 
 

@@ -19,6 +19,24 @@ CREATE TABLE IF NOT EXISTS runs (
     seed_mode       TEXT        -- v0.53.5 — none|abstract|full-text|cumulative
 );
 
+-- v0.225 — within-phase checkpointing. Personas record per-unit
+-- progress (paper, hypothesis, query, …) so resume skips done
+-- work. (run_id, phase, unit_kind, unit_id) is unique. retry
+-- (db.py record-phase --retry) clears matching rows.
+CREATE TABLE IF NOT EXISTS phase_checkpoints (
+    checkpoint_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id         TEXT NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE,
+    phase          TEXT NOT NULL,
+    unit_kind      TEXT NOT NULL,    -- paper|hyp|query|item|...
+    unit_id        TEXT NOT NULL,
+    state          TEXT NOT NULL,    -- done|failed|skipped
+    payload_json   TEXT,
+    at             TEXT NOT NULL,
+    UNIQUE(run_id, phase, unit_kind, unit_id)
+);
+CREATE INDEX IF NOT EXISTS idx_phase_checkpoints_phase
+    ON phase_checkpoints(run_id, phase);
+
 CREATE TABLE IF NOT EXISTS phases (
     phase_id       INTEGER PRIMARY KEY AUTOINCREMENT,
     run_id         TEXT NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE,

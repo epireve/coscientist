@@ -11,6 +11,56 @@ generator output, so a stale `CHANGELOG.md` will fail CI.
 
 Versions are listed newest first.
 
+## v0.225 — within-phase checkpointing for partial-phase resume (2026-05-03)
+
+Audit deferred item — closes the last gap. Before v0.225 a phase
+that processed N units and crashed on unit M would restart from
+unit 0 on resume. Now resume picks up from M.
+
+**Schema** (migration v19): new `phase_checkpoints` table —
+`(run_id, phase, unit_kind, unit_id)` PK, plus `state`
+(`done`|`failed`|`skipped`), `payload_json`, `at`. Indexed
+on `(run_id, phase)`.
+
+**API** (`lib/phase_checkpoint.py` — pure stdlib, best-effort):
+- `record(run_id, phase, kind, id, state, payload=...)` —
+  upsert by PK
+- `is_done(run_id, phase, kind, id)` — fast skip-check
+- `done_units(run_id, phase, [kind])` — list completed unit ids
+- `progress(run_id, phase)` — counts per state
+- `clear_phase(run_id, phase)` — wipe matching rows; called
+  by `db.py record-phase --retry`
+- `list_checkpoints(run_id, [phase])` — diagnostic dump
+
+**Persona usage**:
+
+```python
+from lib.phase_checkpoint import is_done, record
+for paper_id in candidates:
+    if is_done(run_id, "scout", "paper", paper_id):
+        continue
+    process(paper_id)
+    record(run_id, "scout", "paper", paper_id, "done")
+```
+
+**`db.py record-phase --retry`** now also calls `clear_phase`
+(after the phases-table transaction commits, to avoid WAL writer
+contention). v0.220 retry telemetry preserved — `error_count`
+keeps the audit trail of how many times the phase failed.
+
+**`db.py resume`** payload now includes `checkpoint_progress`
+for the next-incomplete phase so the orchestrator knows whether
+to resume from unit M or restart from 0.
+
+Vendored plugin copies of `sqlite_schema.sql` + `migrations.py`
+synced; CHECKSUMS regenerated.
+
+**Tests**: `tests/test_v0_225_phase_checkpoint.py` — 11 cases
+across 4 classes (migration v19 + schema_versions, helper API
+record/is_done/idempotent/done_units/progress/clear_phase/payload,
+retry clears checkpoints, resume surfaces progress). Full suite
+2630/2630 green.
+
 ## v0.224 — unit tests for the v0.222 health split (2026-05-03)
 
 Audit deferred item — claimed "30 lib modules need unit tests".

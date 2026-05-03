@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS schema_versions (
 # so the monotonicity test can assert no version is silently skipped
 # between the SQL-based MIGRATIONS list and the in-code migrations.
 ALL_VERSIONS: tuple[int, ...] = (
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
 )
 
 
@@ -347,9 +347,45 @@ def ensure_current(db_path: Path,
                     (18, "v0.220_phases_retry_telemetry", now),
                 )
             newly_applied.append(18)
+
+        # v0.225 — within-phase checkpointing. Run-DB only: gate on
+        # phases table existence.
+        if 19 not in applied and _table_exists(con, "phases"):
+            _ensure_v19_tables(con)
+            with con:
+                con.execute(
+                    "INSERT INTO schema_versions (version, name, applied_at) "
+                    "VALUES (?, ?, ?)",
+                    (19, "v0.225_phase_checkpoints", now),
+                )
+            newly_applied.append(19)
     finally:
         con.close()
     return newly_applied
+
+
+def _ensure_v19_tables(con: sqlite3.Connection) -> None:
+    """v0.225 — phase_checkpoints table for within-phase resume.
+
+    Idempotent: CREATE IF NOT EXISTS pattern.
+    """
+    with con:
+        con.executescript("""
+            CREATE TABLE IF NOT EXISTS phase_checkpoints (
+                checkpoint_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id         TEXT NOT NULL
+                               REFERENCES runs(run_id) ON DELETE CASCADE,
+                phase          TEXT NOT NULL,
+                unit_kind      TEXT NOT NULL,
+                unit_id        TEXT NOT NULL,
+                state          TEXT NOT NULL,
+                payload_json   TEXT,
+                at             TEXT NOT NULL,
+                UNIQUE(run_id, phase, unit_kind, unit_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_phase_checkpoints_phase
+                ON phase_checkpoints(run_id, phase);
+        """)
 
 
 def _ensure_v18_columns(con: sqlite3.Connection) -> None:
