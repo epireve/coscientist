@@ -1,0 +1,8 @@
+[
+  {
+    "name": "stale-span-watch",
+    "command": "while true; do uv run python -m lib.trace_status --stale-only --json 2>/dev/null | jq -c 'select(.count>0)' 2>/dev/null; sleep 300; done",
+    "description": "Stale spans (>15min running)",
+    "when": "always"
+  }
+]

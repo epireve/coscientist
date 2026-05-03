@@ -33,5 +33,42 @@
   },
   "env": {
     "COSCIENTIST_PUBLISHER_DELAY": "10"
+  },
+  "hooks": {
+    "SubagentStop": [
+      {
+        "matcher": "steward",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/closeout-on-steward-stop.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/load-active-run.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/health-on-stop.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
   }
 }

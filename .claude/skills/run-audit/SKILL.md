@@ -1,6 +1,9 @@
 ---
+name: run-audit
 description: Audit a completed deep-research run for bugs, quality issues, stale spans, missing close-out steps. Read-only diagnostics — no DB writes.
+when_to_use: User says "audit run", "what went wrong with run X", "why is run X stuck", "did closeout fire on run X". Operator-invoked only.
 argument-hint: <run_id>
+disable-model-invocation: true
 ---
 
 # /run-audit

@@ -1,6 +1,9 @@
 ---
+name: run-evolve
 description: Run hypothesis-evolution round on a completed deep-research run. Mutator persona generates child hypotheses from top-Elo parents; children re-enter tournament. Closes Elo ties at the top of the leaderboard.
+when_to_use: User says "evolve hypotheses", "tournament tied", "mutate top hypotheses", "break the Elo tie on run X". Operator-invoked only.
 argument-hint: <run_id> [--top-k 3] [--children-per 2]
+disable-model-invocation: true
 ---
 
 # /run-evolve

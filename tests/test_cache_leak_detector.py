@@ -66,13 +66,19 @@ class CacheLeakDetectorTests(TestCase):
         # be appended to by intentional integration runs outside tests.
         # If the user wants strict mode they can tighten this list.
         ignore_prefixes = ("audit.log", "sandbox_audit.log")
+        # Ignore SQLite ephemeral state — WAL and shared-memory files are
+        # touched by ANY read of an existing DB (open + close re-checkpoint),
+        # so their presence/mtime change is not test pollution. v0.218.
+        ignore_suffixes = ("-wal", "-shm")
         new_paths = {
             p for p in new_paths
             if not any(p.startswith(prefix) for prefix in ignore_prefixes)
+            and not any(p.endswith(suffix) for suffix in ignore_suffixes)
         }
         modified = {
             p for p in modified
             if not any(p.startswith(prefix) for prefix in ignore_prefixes)
+            and not any(p.endswith(suffix) for suffix in ignore_suffixes)
         }
         msg_parts = []
         if new_paths:

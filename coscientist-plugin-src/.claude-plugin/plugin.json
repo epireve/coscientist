@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "coscientist",
+  "version": "0.218.0",
+  "description": "Academic-research-agent toolkit: deep-research pipeline + 70 skills + 43 personas + observability stack",
+  "author": {
+    "name": "Firdaus",
+    "email": "i@firdaus.my"
+  },
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "academic",
+    "literature-review",
+    "deep-research",
+    "agentic"
+  ],
+  "skills": "../.claude/skills/",
+  "agents": "../.claude/agents/",
+  "hooks": "../.claude/settings.json",
+  "monitors": "./monitors/monitors.json",
+  "userConfig": {
+    "consensus_authed": {
+      "type": "boolean",
+      "title": "Consensus Pro account linked",
+      "description": "Set true if you've completed Consensus OAuth via mcp-remote (https://docs.consensus.app/docs/mcp). Bumps result budget from 3 to 20 per query.",
+      "default": false
+    },
+    "consensus_api_key": {
+      "type": "string",
+      "title": "Consensus API key (Enterprise tier only)",
+      "description": "Static bearer token. Pro tier uses OAuth instead — leave empty.",
+      "sensitive": true
+    },
+    "zenodo_token": {
+      "type": "string",
+      "title": "Zenodo deposit token",
+      "description": "API token for dataset DOI minting (zenodo-deposit skill). Get one at https://zenodo.org/account/settings/applications/.",
+      "sensitive": true
+    },
+    "zotero_api_host": {
+      "type": "string",
+      "title": "Zotero local API URL",
+      "description": "Default 127.0.0.1:23119 works for local Zotero with the better-bibtex extension.",
+      "default": "http://127.0.0.1:23119"
+    },
+    "publisher_delay_seconds": {
+      "type": "number",
+      "title": "Per-publisher rate-limit delay (seconds)",
+      "description": "Time between paper-acquire fetches to the same publisher domain.",
+      "default": 10,
+      "min": 1,
+      "max": 60
+    }
+  }
+}

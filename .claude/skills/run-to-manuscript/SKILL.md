@@ -1,6 +1,9 @@
 ---
+name: run-to-manuscript
 description: Convert a completed deep-research run into a manuscript draft. Promotes the top-Elo hypothesis (or user-named hyp) into a structured manuscript via the manuscript-draft skill, harvests cite-keys from the run's papers_in_run.
+when_to_use: User says "draft manuscript from run X", "convert run X to paper", "promote hypothesis to draft". Operator-invoked only.
 argument-hint: <run_id> [--hyp <hyp_id>] [--venue IMRaD|NeurIPS|ACL|Nature|thesis]
+disable-model-invocation: true
 ---
 
 # /run-to-manuscript

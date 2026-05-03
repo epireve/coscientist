@@ -1,6 +1,9 @@
 ---
+name: db-describe
 description: Introspect a Coscientist run DB schema. Lists tables, valid --phase / --kind enums, and row counts. Read-only.
+when_to_use: User says "describe DB", "what tables exist", "what phase values are valid", "what kind values can claims have", "show me DB schema for run X". Operator-invoked only.
 argument-hint: [<run_id>] (optional — defaults to most recent run)
+disable-model-invocation: true
 ---
 
 # /db-describe

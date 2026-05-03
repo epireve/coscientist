@@ -789,7 +789,71 @@ Applied to skills, sub-agents, and code. See `RESEARCHER.md` for the researcher-
 6. **Lego composition** — skills communicate through artifacts on disk, never direct invocation
 7. **Composable principle files** — project-level `CLAUDE.md` merges with `RESEARCHER.md` merges with user-level principles
 
-## Shipped: v0.51 → v0.216
+## Shipped: v0.51 → v0.218
+
+### v0.218 — Phase 3: hooks adoption + leak-detector hardening ✅ (2026-05-03)
+
+Per official docs/hooks: 28 lifecycle events, deterministic side
+effects on transitions like SubagentStop, SessionStart, Stop.
+Coscientist used **zero** hooks before this — every close-out + state
+restore was orchestrator-driven.
+
+Added `.claude/settings.json` hooks block with 3 entries:
+
+1. **`SubagentStop` matcher=`steward`** — auto-fires
+   `closeout-on-steward-stop.sh` when the deep-research steward persona
+   finishes. Walks every run DB, finds runs with steward done but no
+   closeout note, invokes `closeout.py --run-id <rid>`. **Eliminates
+   the manual orchestrator burden from v0.214.** Idempotent — safe
+   to fire multiple times.
+
+2. **`SessionStart` matcher=`startup`** — `load-active-run.sh` finds
+   the most-recent run with incomplete phases and surfaces it as
+   `additionalContext` to Claude. No more "where am I" question
+   every session.
+
+3. **`Stop`** — `health-on-stop.sh` runs `lib.health` and warns to
+   stderr if stale spans accumulated this session. Silent on clean
+   state; visible in Claude transcript only when action needed.
+
+All 3 hook scripts are pure shell (jq + sqlite3 + uv run) under
+`.claude/hooks/`. Mode 0755. Verified by manual smoke test.
+
+**Side fix**: `tests/test_cache_leak_detector.py` was flagging SQLite
+WAL/shm files as "test pollution" but those are touched on every read
+of an existing DB by SQLite itself — not test pollution. Added
+`-wal`/`-shm` suffixes to the ignore list.
+
+**Tests**: `tests/test_v0_218_hooks.py` — 11 cases covering settings
+schema, hook script presence/executability/shebang, and functional
+exit-0 on isolated cache. All pass.
+
+### v0.217 — Phase 2: commands → skills migration ✅ (2026-05-03)
+
+Per official docs/skills: legacy `.claude/commands/<name>.md` and
+`.claude/skills/<name>/SKILL.md` both create `/name`. Skills are the
+recommended format — they support `disable-model-invocation`, supporting
+files, and autonomous discovery; commands cannot.
+
+Migrated 4 operator commands from `.claude/commands/` to
+`.claude/skills/<name>/SKILL.md`:
+
+- `/run-audit` → `.claude/skills/run-audit/SKILL.md`
+- `/run-evolve` → `.claude/skills/run-evolve/SKILL.md`
+- `/run-to-manuscript` → `.claude/skills/run-to-manuscript/SKILL.md`
+- `/db-describe` → `.claude/skills/db-describe/SKILL.md`
+
+Each migrated skill gained `name: <skill>` and
+`disable-model-invocation: true` (operator-invoked, no autonomous
+trigger).
+
+`.claude/commands/deep-research.md` preserved — it's a thin wrapper
+that routes to the existing `deep-research` skill. Both formats coexist
+per docs.
+
+**Tests**: replaced `tests/test_v0_215_slash_commands.py` with
+`tests/test_v0_217_command_skill_migration.py` — 10 cases. All pass.
+Full suite: stable.
 
 ### v0.216 — Phase 1 frontmatter compliance pass ✅ (2026-05-03)
 
