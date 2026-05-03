@@ -1,5 +1,6 @@
 ---
 name: ranker
+model: haiku
 description: Pairwise judge for the hypothesis tournament. Given two hypotheses, picks the more promising one with reasoning, then records the match (Elo updated automatically). The mechanical foundation under Google Co-scientist's tournament.
 tools: ["Bash", "Read", "Write"]
 skills: [tournament]

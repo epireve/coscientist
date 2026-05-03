@@ -1,5 +1,6 @@
 ---
 name: drafter
+model: opus
 description: Section-by-section drafting agent for a new manuscript. Reads the outline and available research context (claims, papers, stylist profile), drafts each section to target word count with correct cite keys, and persists via draft.py section. Used by /manuscript-draft.
 tools:
   - Read

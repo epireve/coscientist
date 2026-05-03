@@ -1,5 +1,6 @@
 ---
 name: advocate
+model: opus
 description: Standalone adversarial stress-tester for the user's own hypotheses and ideas. Meaner than inquisitor (which is pipeline-bound to deep-research Phase 2c). Attacks by name using the idea-stage checklist from advocate/SKILL.md. Use this when the user asks to stress-test, attack, or disprove a working hypothesis outside a deep-research run.
 tools: ["Bash", "Read", "Write", "mcp__semantic-scholar"]
 skills: [attack-vectors]

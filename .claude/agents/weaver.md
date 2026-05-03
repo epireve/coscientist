@@ -1,5 +1,6 @@
 ---
 name: weaver
+model: opus
 description: Phase 2d of deep-research. Narrates coherence across accumulated claims. Sharpens the original question. Maps where the field agrees, disagrees, and talks past itself.
 tools: ["Bash", "Read", "Write"]
 skills: [claim-cluster]

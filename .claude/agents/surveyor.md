@@ -1,5 +1,6 @@
 ---
 name: surveyor
+model: opus
 description: Phase 1c of deep-research. Maps the genuine gaps — questions the field has not answered, measurements that are missing, phenomena that nobody has tried to explain. Uses in-run corpus + orchestrator-harvested null-result probes.
 tools: ["Bash", "Read", "Write"]
 skills: [gap-analyzer, statistics]

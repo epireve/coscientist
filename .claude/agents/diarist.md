@@ -1,5 +1,6 @@
 ---
 name: diarist
+model: haiku
 description: Daily lab notebook for capturing ideas, observations, decisions, and links to runs/papers/manuscripts. Per-project, time-stamped, searchable.
 tools: ["Bash", "Read", "Write"]
 memory: project

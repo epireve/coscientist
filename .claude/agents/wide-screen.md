@@ -1,5 +1,6 @@
 ---
 name: wide-screen
+model: haiku
 description: Wide Research sub-agent for the `screen` task type. PRISMA-style include/exclude per criterion. One paper per invocation.
 tools: ["Read", "Write", "Bash"]
 effort: low

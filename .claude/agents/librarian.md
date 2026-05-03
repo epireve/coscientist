@@ -1,5 +1,6 @@
 ---
 name: librarian
+model: haiku
 description: Bridges Coscientist ↔ Zotero and manages citation-graph operations. Syncs Zotero items into paper artifacts, exports BibTeX for a manuscript or run, tracks per-project reading state, and flags retractions. Uses only already-returned MCP data — no speculative fetches.
 tools: ["Bash", "Read", "Write", "mcp__zotero", "mcp__semantic-scholar"]
 memory: project

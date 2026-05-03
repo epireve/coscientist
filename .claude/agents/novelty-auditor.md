@@ -1,5 +1,6 @@
 ---
 name: novelty-auditor
+model: opus
 description: Structured novelty assessment for a target paper, manuscript, or hypothesis. Decomposes claimed contributions, searches targeted prior art, produces a novelty matrix with delta-sufficiency verdicts. Refuses un-grounded claims.
 tools: ["Bash", "Read", "Write", "mcp__semantic-scholar", "mcp__paper-search", "mcp__consensus"]
 skills: [novelty-check]

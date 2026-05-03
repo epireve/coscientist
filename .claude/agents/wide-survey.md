@@ -1,5 +1,6 @@
 ---
 name: wide-survey
+model: sonnet
 description: Wide Research sub-agent for the `survey` task type. One author per invocation. Fetches publication trajectory (h-index, recent venues, top papers).
 tools: ["Read", "Write", "Bash"]
 effort: low

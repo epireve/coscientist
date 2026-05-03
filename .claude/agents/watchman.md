@@ -1,5 +1,6 @@
 ---
 name: watchman
+model: haiku
 description: Read-only single-screen view across one or all projects. Active projects, recent activity, reading state, manuscripts in flight, open audit issues, graph size.
 tools: ["Bash", "Read"]
 memory: project

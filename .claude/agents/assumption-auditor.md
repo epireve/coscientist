@@ -1,5 +1,6 @@
 ---
 name: assumption-auditor
+model: sonnet
 description: Walk the in-run corpus, surface majority-shared assumptions that NO paper tests. Predicts breakage if assumption falsified. Distinct from surveyor (gaps = unanswered questions) and inquisitor (attacks architect tree only). v0.210.
 tools: ["Bash", "Read", "Write"]
 memory: project

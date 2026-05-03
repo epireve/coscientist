@@ -1,5 +1,6 @@
 ---
 name: publishability-judge
+model: opus
 description: Rubric-based venue-calibrated publishability judgment. Commits to a probability per target venue with three up-factors, three down-factors, and a declared kill criterion. Refuses hedged verdicts.
 tools: ["Bash", "Read", "Write", "mcp__semantic-scholar"]
 skills: [publishability-check, calibration]

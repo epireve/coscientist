@@ -1,5 +1,6 @@
 ---
 name: wide-compare
+model: sonnet
 description: Wide Research sub-agent for the `compare` task type. One item per invocation. Extracts a fixed feature schema across many comparable items (companies, protocols, datasets).
 tools: ["Read", "Write", "Bash"]
 disallowedTools: Write, Edit

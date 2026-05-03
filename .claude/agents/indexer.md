@@ -1,5 +1,6 @@
 ---
 name: indexer
+model: haiku
 description: Read-only search and lookup across every project. Answers "I know I read this somewhere" and "which projects touched this paper". Pure aggregation; never writes.
 tools: ["Bash", "Read"]
 memory: project

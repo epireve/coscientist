@@ -791,6 +791,44 @@ Applied to skills, sub-agents, and code. See `RESEARCHER.md` for the researcher-
 
 ## Shipped: v0.51 → v0.227
 
+### v0.230 — agent model declarations across all 43 personas ✅ (2026-05-03)
+
+Audit found 4/43 agents declared `model:`. v0.230 brings every
+persona to 100% coverage with a tiered policy:
+
+- **haiku** (cheap): `ranker`, `debate-judge`, `quality-judge`,
+  `wide-rank`, `wide-screen`, `wide-triage`, `indexer`,
+  `watchman`, `librarian`, `diarist`, `stylist`
+- **opus** (heavy thinking): `architect`, `synthesist`,
+  `diviner`, `weaver`, `visionary`, `steward`, `inquisitor`,
+  `novelty-auditor`, `publishability-judge`, `red-team`,
+  `advocate`, `panel`, `peer-reviewer`, `mutator`,
+  `idea-tree-generator`, `verifier`, `reviser`, `drafter`,
+  `compositor`, `funder`, `experimentalist`, `scout`,
+  `cartographer`, `chronicler`, `surveyor`
+- **sonnet** (default): everything else
+
+Patcher: `scripts/v0_230_model_patch.py` — idempotent, dry-run
+flag, inserts `model:` after `description:`. Handles both
+short-tier and explicit `claude-*` ID forms (4 pre-existing
+agents already declared explicit IDs — left untouched).
+
+**Tests**: `tests/test_v0_230_agent_models.py` — 2 cases:
+every agent declares `model:`, every model value is either a
+known tier or an explicit `claude-*` ID. Locks coverage so new
+agents can't slip through without a tier assignment.
+
+Full suite 2632/2632 green.
+
+### v0.229 — skip ✅ (2026-05-03)
+
+Audit candidate to split `lib/migrations.py` SQL DDL into a
+separate module. On inspection, the file is already well-
+structured: every migration's SQL DDL lives in
+`lib/migrations_sql/vN.sql` and the `_ensure_vN_*` helpers stay
+near the dispatch logic in `ensure_current` (proximity matters
+for review). No-op release; recorded for traceability.
+
 ### v0.228 — split lib/trace_status.py into 3 focused modules ✅ (2026-05-03)
 
 903-line trace_status.py broken out:

@@ -1,5 +1,6 @@
 ---
 name: reviser
+model: opus
 description: Respond-to-reviewers agent. Parses reviewer comments, maps each to the relevant manuscript section, drafts point-by-point response stubs, and suggests concrete edits. Used by /manuscript-revise.
 tools:
   - Read

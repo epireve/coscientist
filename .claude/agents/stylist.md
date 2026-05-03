@@ -1,5 +1,6 @@
 ---
 name: stylist
+model: haiku
 description: Analyzes academic writing style — fingerprints your voice from prior manuscripts, audits new drafts for deviation, gives paragraph-level feedback during drafting. Pure deterministic text analysis, no LLM calls, no external deps.
 tools: ["Bash", "Read", "Write"]
 memory: project

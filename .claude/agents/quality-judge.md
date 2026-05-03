@@ -1,5 +1,6 @@
 ---
 name: quality-judge
+model: haiku
 description: Sub-agent that scores another persona's output against its rubric. Reads the artifact + rubric criteria, returns per-criterion scores (0.0–1.0) + one-paragraph reasoning. v0.92.
 tools: ["Read"]
 effort: low

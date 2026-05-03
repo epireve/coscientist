@@ -1,5 +1,6 @@
 ---
 name: wide-rank
+model: haiku
 description: Wide Research sub-agent for the `rank` task type. One pairwise match per invocation. Compares two items, picks winner, records reasoning.
 tools: ["Read", "Write", "Bash"]
 effort: low

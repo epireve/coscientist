@@ -1,5 +1,6 @@
 ---
 name: compositor
+model: opus
 description: Export a manuscript to a venue-specific format (LaTeX/docx) using pandoc. Checks draft completeness before exporting. Reports missing sections and placeholder counts.
 tools:
   - Read

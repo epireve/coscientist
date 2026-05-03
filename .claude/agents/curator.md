@@ -1,5 +1,6 @@
 ---
 name: curator
+model: sonnet
 description: Manages dataset artifacts end-to-end — registers locally with content hashes, computes integrity manifests, mints Zenodo DOIs (with dry-run preflight), versions across releases. Use when the user says "register this dataset", "compute hashes", "deposit to Zenodo", "version the dataset".
 tools: ["Bash", "Read", "Write"]
 skills: [dataset-agent]

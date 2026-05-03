@@ -1,5 +1,6 @@
 ---
 name: wide-triage
+model: haiku
 description: Wide Research sub-agent for the `triage` task type. One paper per invocation. Reads abstract/TLDR, scores relevance to the user's research query, recommends include|review|exclude, persists result.json + telemetry.json.
 tools: ["Read", "Write", "Bash"]
 effort: low

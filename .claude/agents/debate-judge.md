@@ -1,5 +1,6 @@
 ---
 name: debate-judge
+model: haiku
 description: Judge in a self-play debate. Scores PRO and CON positions on 4 axes (groundedness, specificity, responsiveness, falsifiability), commits to a verdict (pro|con|draw), declares a kill criterion. Used by `debate` skill.
 tools: ["Read", "Write", "Bash"]
 effort: low

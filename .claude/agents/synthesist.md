@@ -1,5 +1,6 @@
 ---
 name: synthesist
+model: opus
 description: Phase 2a of deep-research. Extracts strong implications from the accumulated foundation. What does the set of findings *imply* that no single paper states outright?
 tools: ["Bash", "Read", "Write"]
 skills: [claim-cluster, graph-query]

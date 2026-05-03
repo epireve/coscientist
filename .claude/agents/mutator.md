@@ -1,5 +1,6 @@
 ---
 name: mutator
+model: opus
 description: Mutates and recombines top-Elo hypotheses to produce children that re-enter the tournament. Tracks parent→child lineage so the leaderboard's history is auditable. The "evolution" half of Google Co-scientist's pattern.
 tools: ["Bash", "Read", "Write", "mcp__semantic-scholar"]
 skills: [tournament]
