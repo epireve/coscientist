@@ -7,9 +7,11 @@ argument-hint: "<research question>" | --resume <run_id>
 
 Starts (or resumes) the Coscientist deep-research pipeline. Invokes the `deep-research` skill.
 
-## For a new run
+## Procedure
 
 The user has supplied: `$ARGUMENTS`
+
+### For a new run
 
 1. Parse arguments:
    - If starts with `--resume`, extract the run_id and resume that run.
@@ -65,7 +67,7 @@ The user has supplied: `$ARGUMENTS`
 
 3. On any error, record it and stop — do not silently skip a phase.
 
-## For resuming
+### For resuming
 
 ```bash
 uv run python .claude/skills/deep-research/scripts/db.py resume --run-id <run_id>
@@ -78,3 +80,11 @@ Then continue from the next phase as above.
 - Never skip a break point.
 - Never bypass `paper-acquire`'s triage gate.
 - Abort the run if `/research-eval` reports >30% unattributed claims.
+
+## Exit test
+
+Done when:
+- `db.py next-phase` returns `DONE`
+- `brief.md` and `understanding_map.md` written under `~/.cache/coscientist/runs/run-<id>/`
+- `closeout.py` ran (notes table has `author='closeout'` row for this run)
+- `/research-eval` ran with claim attribution ≥70%

@@ -789,7 +789,38 @@ Applied to skills, sub-agents, and code. See `RESEARCHER.md` for the researcher-
 6. **Lego composition** — skills communicate through artifacts on disk, never direct invocation
 7. **Composable principle files** — project-level `CLAUDE.md` merges with `RESEARCHER.md` merges with user-level principles
 
-## Shipped: v0.51 → v0.214
+## Shipped: v0.51 → v0.215
+
+### v0.215 — slash command family + Tier-1 commands ✅ (2026-05-03)
+
+Established naming standard for `.claude/commands/*.md`:
+- `/deep-*` — high-level pipelines
+- `/run-*` — run-scoped post-processing
+- `/db-*` — DB introspection / ops
+- `/research-*` — multi-pipeline orchestration
+
+Built 4 Tier-1 commands closing post-pipeline gaps identified in
+the run 88888895 audit:
+
+- `/run-audit <run_id>` — read-only diagnostic punch list (stale
+  spans, closeout-ran check, quality summary, tournament leaderboard)
+- `/run-evolve <run_id>` — invokes mutator persona on top-Elo
+  hypotheses, runs fresh tournament round, breaks Elo ties
+- `/run-to-manuscript <run_id>` — promotes top-Elo hypothesis →
+  manuscript-draft skill, harvests cite-keys from `papers_in_run`
+- `/db-describe [run_id]` — schema + row counts + valid `--phase`/
+  `--kind` enums; replaces 6× PRAGMA queries sub-agents fire
+
+Standardized existing `/deep-research.md` to use `## Procedure` + `## Exit test`
+sections (was `## For a new run` / `## For resuming`).
+
+Tests: `tests/test_v0_215_slash_commands.py` — 8 cases (frontmatter
+schema, family-prefix conformance, no-dogfood lint, Procedure+Exit-test
+sections present, argument-hint format). All pass.
+
+Bug found + fixed during functional dry-run: `/run-audit` referenced
+`agent_quality summary --run-id` but CLI requires `--db` too. Fixed
+in command body.
 
 ### v0.214 — deep-research close-out hook ✅ (2026-05-03)
 
