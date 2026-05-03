@@ -789,7 +789,41 @@ Applied to skills, sub-agents, and code. See `RESEARCHER.md` for the researcher-
 6. **Lego composition** — skills communicate through artifacts on disk, never direct invocation
 7. **Composable principle files** — project-level `CLAUDE.md` merges with `RESEARCHER.md` merges with user-level principles
 
-## Shipped: v0.51 → v0.225
+## Shipped: v0.51 → v0.227
+
+### v0.227 — split lib/agent_quality.py into 3 focused modules ✅ (2026-05-03)
+
+Mirrors v0.222 health.py split. 965-line agent_quality.py
+broken out:
+
+- `lib/agent_quality_rubrics.py` (454 lines) — `Rubric`,
+  `Criterion`, check helpers (count_at_least, fraction_with_field,
+  every_item_has_fields, unique_kind_count, has_field), artifact
+  loaders, and the 10 per-persona `RUBRICS` (scout, surveyor,
+  architect, synthesist, weaver, cartographer, chronicler,
+  inquisitor, visionary, steward).
+- `lib/agent_quality_scoring.py` (192 lines) — `score_auto`,
+  `emit_judge_prompt`, `persist_judge_result`, `_persist`,
+  `_normalize_total`. Two-step llm-judge protocol.
+- `lib/agent_quality_aggregation.py` (197 lines) — `list_for_run`,
+  `summary`, `leaderboard`, `quality_drift`. All read-only.
+- `lib/agent_quality.py` (154 lines) — facade re-exporting
+  public surface + `main()` CLI (subcommands: summary,
+  leaderboard, drift).
+
+No behavior change. Full suite 2630/2630 green.
+
+### v0.226 — repo declutter + dev-cache hygiene ✅ (2026-05-03)
+
+Deleted 5 stale `coscientist*.plugin` build artifacts +
+`coscientist-cowork.zip` from repo root (all gitignored;
+on-disk only). 17M reclaimed.
+
+Investigated lone failed span at run-86926630.db — `phase|scout|
+stale-span auto-close` from earlier dev. No fix needed; that's
+the v0.97-shipped auto-close path doing its job.
+
+No repo changes (cleanup only touched gitignored files).
 
 ### v0.225 — within-phase checkpointing for partial-phase resume ✅ (2026-05-03)
 
