@@ -789,7 +789,43 @@ Applied to skills, sub-agents, and code. See `RESEARCHER.md` for the researcher-
 6. **Lego composition** — skills communicate through artifacts on disk, never direct invocation
 7. **Composable principle files** — project-level `CLAUDE.md` merges with `RESEARCHER.md` merges with user-level principles
 
-## Shipped: v0.51 → v0.218
+## Shipped: v0.51 → v0.219
+
+### v0.219 — Phase 3 extension: three more high-leverage hooks ✅ (2026-05-03)
+
+v0.218 shipped 3 hooks (SubagentStop, SessionStart, Stop). Plan
+section E listed 7 more. v0.219 ships the next-highest-leverage 3:
+
+1. **`PreToolUse` matcher=`Bash`** — `block-cache-rm.sh` returns
+   `permissionDecision=deny` JSON when a Bash command matches
+   `rm -rf <path-to-coscientist-cache>`. Codifies the permission
+   hesitation we already had into a structural deny rather than
+   relying on Claude to ask. Steers user to safe cleanup
+   (`lib.trace_status --prune-empty-dbs`).
+
+2. **`PostToolUse` matcher=`Write|Edit`** — `lint-touched.sh` runs
+   cheap quality checks (`python3 -m py_compile`, `jq empty`,
+   YAML frontmatter check on SKILL.md / agent .md). Silent on
+   clean files; warns to stderr (visible in Claude transcript)
+   on issues. Never blocks — exit 0 always. Sub-second.
+
+3. **`PreCompact`** — `externalize-active-state.sh` finds the
+   most-recent active run and writes
+   `~/.cache/coscientist/runs/run-<rid>/precompact-state.json`
+   with question, completed/pending phases, paper count,
+   hypothesis count, and a restore hint
+   (`db.py resume --run-id <rid>`). **Closes the steward 3h43m
+   runaway class from run 88888895** — if compaction loses
+   mid-pipeline orchestrator context, the next session reads
+   this file and recovers without context loss.
+
+All 3 are pure shell (jq + sqlite3) under `.claude/hooks/`,
+mode 0755. Smoke-tested live against active run c0d0af94
+before commit.
+
+**Tests**: `tests/test_v0_219_more_hooks.py` — 15 cases across 4
+classes (registration, block-cache-rm, lint-touched, precompact
+externalize). All pass.
 
 ### v0.218 — Phase 3: hooks adoption + leak-detector hardening ✅ (2026-05-03)
 
