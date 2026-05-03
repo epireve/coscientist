@@ -11,6 +11,24 @@ generator output, so a stale `CHANGELOG.md` will fail CI.
 
 Versions are listed newest first.
 
+## v0.228 — split lib/trace_status.py into 3 focused modules (2026-05-03)
+
+903-line trace_status.py broken out:
+
+- `lib/trace_status_query.py` (466 lines) — all read-only:
+  `summarize_trace`, `summarize_runs`, `find_stale_spans`,
+  `gate_summary`, `gate_summary_across_runs`, `harvest_summary`,
+  `harvest_summary_across_runs`, `tool_call_latency`,
+  `tool_call_latency_across_runs`. Plus `_open` / `_runs_root`
+  helpers.
+- `lib/trace_status_prune.py` (162 lines) — all mutations:
+  `mark_stale_error`, `prune_old_traces`, `prune_empty_run_dbs`.
+- `lib/trace_status_render.py` (42 lines) — `render_md`.
+- `lib/trace_status.py` (235 lines) — facade + `main()` CLI.
+
+Public surface preserved via re-exports. No behavior change.
+Full suite 2630/2630 green.
+
 ## v0.227 — split lib/agent_quality.py into 3 focused modules (2026-05-03)
 
 Mirrors v0.222 health.py split. 965-line agent_quality.py
