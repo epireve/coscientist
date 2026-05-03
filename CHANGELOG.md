@@ -11,6 +11,25 @@ generator output, so a stale `CHANGELOG.md` will fail CI.
 
 Versions are listed newest first.
 
+## v0.223 — CLAUDE.md compress 268 → 164 lines (2026-05-03)
+
+Audit deferred item — guideline target <200 lines, was 268.
+
+- Removed redundant verbose blocks already covered in
+  `docs/ARCHITECTURE.md` (artifact directory listing, paper artifact
+  fields, per-kind state machine listing, full sub-agent phase
+  rosters, external-projects credits).
+- Kept core: three modes, on-disk contract one-liner, observability
+  stack (spans/env-vars/inspect commands/invariants), skill rules,
+  guardrails, sub-agent invariants, working principles.
+- Added explicit git rule: single-author commits, no Claude/Anthropic
+  attribution, no "follows X standards" framing.
+- Updated `tests/test_v0_115_claudemd_observability.py` to check the
+  union of CLAUDE.md + docs/ARCHITECTURE.md so doc parity holds
+  wherever content lives.
+
+Full suite 2602/2602 green.
+
 ## v0.222 — split lib/health.py into 3 focused modules (2026-05-03)
 
 Audit deferred item — `health.py` was 840 lines, hard to test
