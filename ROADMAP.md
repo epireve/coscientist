@@ -789,7 +789,29 @@ Applied to skills, sub-agents, and code. See `RESEARCHER.md` for the researcher-
 6. **Lego composition** — skills communicate through artifacts on disk, never direct invocation
 7. **Composable principle files** — project-level `CLAUDE.md` merges with `RESEARCHER.md` merges with user-level principles
 
-## Shipped: v0.51 → v0.221
+## Shipped: v0.51 → v0.222
+
+### v0.222 — split lib/health.py into 3 focused modules ✅ (2026-05-03)
+
+Audit deferred item — `health.py` was 840 lines, hard to test
+piece-wise. Split into 3 modules + facade:
+
+- `lib/health_thresholds.py` (231 lines) — `DEFAULT_THRESHOLDS`,
+  `load_thresholds`, `evaluate_alerts`, plus `_config_path` /
+  `_project_config_path` / `_apply_overrides` / `_read_config`
+  helpers. Pure threshold logic, no I/O outside config files.
+- `lib/health_collect.py` (350 lines) — `collect`,
+  `mcp_error_rates`, `trees_summary_across_runs`,
+  `thinking_coverage_across_runs`, plus per-DB helpers. All
+  the DB walking lives here.
+- `lib/health_render.py` (175 lines) — `render_md`. Pure
+  formatting.
+- `lib/health.py` (125 lines) — facade that re-exports the
+  public surface (`collect`, `evaluate_alerts`, `render_md`,
+  etc) plus the `main()` CLI entrypoint. Existing callers
+  (`from lib.health import collect`) keep working unchanged.
+
+No behavior change. Full suite 2602/2602 green.
 
 ### v0.221 — per-MCP retry with backoff on s2 + openalex ✅ (2026-05-03)
 
