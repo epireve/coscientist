@@ -372,9 +372,23 @@ def cmd_record_phase(args: argparse.Namespace) -> None:
                 (now, output, args.run_id, args.phase),
             )
         if args.error:
+            # v0.220 — bump retry telemetry alongside the error text.
+            # error_count is monotonic; last_error_at = now.
             con.execute(
-                "UPDATE phases SET error=? WHERE run_id=? AND name=?",
-                (args.error, args.run_id, args.phase),
+                "UPDATE phases SET error=?, "
+                "error_count=COALESCE(error_count,0)+1, "
+                "last_error_at=? "
+                "WHERE run_id=? AND name=?",
+                (args.error, now, args.run_id, args.phase),
+            )
+        if getattr(args, "retry", False):
+            # v0.220 — clear stale error/completed_at, bump retry_attempt.
+            # Caller follows up with --start to re-open the phase.
+            con.execute(
+                "UPDATE phases SET error=NULL, completed_at=NULL, "
+                "retry_attempt=COALESCE(retry_attempt,0)+1 "
+                "WHERE run_id=? AND name=?",
+                (args.run_id, args.phase),
             )
     con.close()
     # v0.93a — emit a v0.89 trace span mirror for live debugging.
@@ -866,8 +880,11 @@ def cmd_resume(args: argparse.Namespace) -> None:
     if not run:
         con.close()
         raise SystemExit(f"no such run: {args.run_id}")
+    # v0.220 — include retry telemetry columns in resume payload.
     phases = con.execute(
-        "SELECT name, started_at, completed_at, error FROM phases WHERE run_id=? ORDER BY ordinal",
+        "SELECT name, started_at, completed_at, error, "
+        "error_count, last_error_at, retry_attempt "
+        "FROM phases WHERE run_id=? ORDER BY ordinal",
         (args.run_id,),
     ).fetchall()
     con.close()
@@ -1378,6 +1395,13 @@ def main() -> None:
     pp.add_argument("--run-id", required=True); pp.add_argument("--phase", required=True)
     pp.add_argument("--start", action="store_true"); pp.add_argument("--complete", action="store_true")
     pp.add_argument("--output-json", default=None); pp.add_argument("--error", default=None)
+    pp.add_argument(
+        "--retry", action="store_true",
+        help="v0.220: clear stale error/completed_at on the phase and "
+             "bump retry_attempt counter. Caller follows up with --start "
+             "to re-open. Use after a transient failure when you want "
+             "the audit trail to reflect the retry rather than mask it.",
+    )
     pp.add_argument(
         "--quality-artifact", default=None,
         help="v0.103: separate richer artifact for auto-rubric "

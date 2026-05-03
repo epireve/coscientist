@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS schema_versions (
 # so the monotonicity test can assert no version is silently skipped
 # between the SQL-based MIGRATIONS list and the in-code migrations.
 ALL_VERSIONS: tuple[int, ...] = (
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
 )
 
 
@@ -335,9 +335,50 @@ def ensure_current(db_path: Path,
                     (17, "v0.198_v0.200_claims_tension_and_decoupled_ids", now),
                 )
             newly_applied.append(17)
+
+        # v0.220 — phases retry telemetry. Run-DB only: gate on phases
+        # table existence (project DB has no phases).
+        if 18 not in applied and _table_exists(con, "phases"):
+            _ensure_v18_columns(con)
+            with con:
+                con.execute(
+                    "INSERT INTO schema_versions (version, name, applied_at) "
+                    "VALUES (?, ?, ?)",
+                    (18, "v0.220_phases_retry_telemetry", now),
+                )
+            newly_applied.append(18)
     finally:
         con.close()
     return newly_applied
+
+
+def _ensure_v18_columns(con: sqlite3.Connection) -> None:
+    """v0.220 — add 3 retry-telemetry columns to phases:
+
+    - error_count    INTEGER NOT NULL DEFAULT 0 — monotonic failure count
+    - last_error_at  TEXT                       — most-recent failure ts
+    - retry_attempt  INTEGER NOT NULL DEFAULT 0 — explicit retry count
+
+    Idempotent: each ALTER guarded by PRAGMA table_info.
+    """
+    if not _table_exists(con, "phases"):
+        return
+    cols = {row[1] for row in con.execute("PRAGMA table_info(phases)")}
+    with con:
+        if "error_count" not in cols:
+            con.execute(
+                "ALTER TABLE phases ADD COLUMN "
+                "error_count INTEGER NOT NULL DEFAULT 0"
+            )
+        if "last_error_at" not in cols:
+            con.execute(
+                "ALTER TABLE phases ADD COLUMN last_error_at TEXT"
+            )
+        if "retry_attempt" not in cols:
+            con.execute(
+                "ALTER TABLE phases ADD COLUMN "
+                "retry_attempt INTEGER NOT NULL DEFAULT 0"
+            )
 
 
 def _ensure_v17_columns(con: sqlite3.Connection) -> None:

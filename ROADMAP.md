@@ -789,7 +789,66 @@ Applied to skills, sub-agents, and code. See `RESEARCHER.md` for the researcher-
 6. **Lego composition** — skills communicate through artifacts on disk, never direct invocation
 7. **Composable principle files** — project-level `CLAUDE.md` merges with `RESEARCHER.md` merges with user-level principles
 
-## Shipped: v0.51 → v0.219
+## Shipped: v0.51 → v0.220
+
+### v0.220 — phases retry telemetry + repo declutter ✅ (2026-05-03)
+
+Audit response. Three issues raised:
+
+1. **Resume/retry coarse-grained.** Phase-level resume worked
+   (`db.py resume` replays where `completed_at IS NULL`), but
+   `phases.error` was a single text column — no `error_count`,
+   no `last_error_at`, no `retry_attempt`. Couldn't tell first
+   failure from fifth.
+
+2. **Stray build artifacts at repo root.** Mystery 5.8M
+   `ziXH4nRf` zip and two empty 0-byte cowork zips left over
+   from plugin packaging. All gitignored, but on-disk clutter.
+
+3. **Skill disable-model-invocation gap.** 13 manual-only skills
+   per plan section E. Audited: v0.216 already flagged all 9
+   that exist as skills (the other 4 — compositor, reviser,
+   drafter, funder — are agent personas, not skills). No-op.
+
+**Changes:**
+
+- Migration v18 (`_ensure_v18_columns`): adds 3 columns to
+  `phases` — `error_count INTEGER NOT NULL DEFAULT 0`,
+  `last_error_at TEXT`, `retry_attempt INTEGER NOT NULL DEFAULT 0`.
+  Idempotent ALTER guarded by PRAGMA table_info.
+- `db.py record-phase`:
+  - `--error <msg>` now bumps `error_count` and sets
+    `last_error_at = now`.
+  - `--retry` (new flag) clears `error` + `completed_at`,
+    bumps `retry_attempt`. Caller follows up with `--start`
+    to re-open. Audit trail preserves `error_count` so
+    "this phase failed 3 times before succeeding" is queryable.
+- `db.py resume` payload now includes `error_count`,
+  `last_error_at`, `retry_attempt` per phase.
+- Vendored `lib/sqlite_schema.sql` + `lib/migrations.py` in
+  `plugin/coscientist-graph-query-mcp/lib/` and
+  `plugin/coscientist-deep-research/lib/` synced to source.
+- Plugin CHECKSUMS regenerated.
+- Deleted `ziXH4nRf` (5.8M zip),
+  `coscientist-cowork-20260502-162754.zip`,
+  `coscientist-cowork-build.zip` (both 0 bytes).
+
+**Tests**: `tests/test_v0_220_retry_telemetry.py` — 6 cases
+across 4 classes (migration v18 columns + schema_versions
+recording, error bumps count + timestamp, repeated error
+increment, --retry clears state and bumps attempt, resume
+emits new columns). All pass. Full suite 2593/2593 green.
+
+**Audit findings still open** (deferred):
+- No partial-phase checkpointing (scout 5/10 papers → restart
+  from 0).
+- No per-MCP retry with backoff in `source_selector.py` /
+  `wide.py` — degradation is informational, not retry-driving.
+- 30 `lib/*.py` modules lack unit tests (covered via
+  integration only).
+- `health.py` 840 lines — refactor to 3 focused modules
+  pending.
+- CLAUDE.md 268 lines vs 200 ideal — compress pending.
 
 ### v0.219 — Phase 3 extension: three more high-leverage hooks ✅ (2026-05-03)
 

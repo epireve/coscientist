@@ -28,6 +28,12 @@ CREATE TABLE IF NOT EXISTS phases (
     completed_at   TEXT,
     output_json    TEXT,
     error          TEXT,
+    -- v0.220 retry telemetry. error_count = monotonic failure count;
+    -- last_error_at = most-recent failure timestamp; retry_attempt
+    -- = number of explicit `record-phase --retry` invocations.
+    error_count    INTEGER NOT NULL DEFAULT 0,
+    last_error_at  TEXT,
+    retry_attempt  INTEGER NOT NULL DEFAULT 0,
     UNIQUE(run_id, ordinal)
 );
 

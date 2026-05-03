@@ -14,7 +14,9 @@ CREATE TABLE IF NOT EXISTS runs (
     final_brief    TEXT,
     understanding_map TEXT,
     search_strategy_json TEXT,  -- v0.52.1 — framework + sub-area decomposition (lib/search_framework.py)
-    strategy_critique_json TEXT  -- v0.52.2 — adversarial critique of search strategy (search-strategy-critique skill)
+    strategy_critique_json TEXT, -- v0.52.2 — adversarial critique of search strategy (search-strategy-critique skill)
+    parent_run_id   TEXT,       -- v0.53.5 — Wide run that seeded this Deep run
+    seed_mode       TEXT        -- v0.53.5 — none|abstract|full-text|cumulative
 );
 
 CREATE TABLE IF NOT EXISTS phases (
@@ -26,6 +28,12 @@ CREATE TABLE IF NOT EXISTS phases (
     completed_at   TEXT,
     output_json    TEXT,
     error          TEXT,
+    -- v0.220 retry telemetry. error_count = monotonic failure count;
+    -- last_error_at = most-recent failure timestamp; retry_attempt
+    -- = number of explicit `record-phase --retry` invocations.
+    error_count    INTEGER NOT NULL DEFAULT 0,
+    last_error_at  TEXT,
+    retry_attempt  INTEGER NOT NULL DEFAULT 0,
     UNIQUE(run_id, ordinal)
 );
 
@@ -54,7 +62,7 @@ CREATE TABLE IF NOT EXISTS queries (
 CREATE TABLE IF NOT EXISTS papers_in_run (
     run_id         TEXT NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE,
     canonical_id   TEXT NOT NULL,
-    added_in_phase TEXT NOT NULL,
+    added_in_phase TEXT NOT NULL,  -- v0.190 canonical Expedition phase name (no aliases on fresh DBs)
     role           TEXT,                                -- seed|seminal|supporting|novel|rebuttal
     notes          TEXT,
     harvest_count  INTEGER NOT NULL DEFAULT 1,          -- v0.50.4 — repeat-hit signal across personas
@@ -71,7 +79,13 @@ CREATE TABLE IF NOT EXISTS claims (
     text           TEXT NOT NULL,
     kind           TEXT,                                -- finding|hypothesis|gap|tension|dead_end
     confidence     REAL,
-    supporting_ids TEXT                                 -- JSON array of canonical_ids
+    supporting_ids TEXT,                                -- JSON array of paper canonical_ids ONLY (v0.200)
+    -- v0.198 — paired tension dual-side support
+    side                  TEXT,                         -- NULL | 'a' | 'b'
+    paired_claim_id       INTEGER REFERENCES claims(claim_id),
+    -- v0.200 — decoupled non-paper ID fields
+    targets_hyp_id        TEXT,                         -- single hyp_id (inquisitor tensions)
+    references_claim_ids  TEXT                          -- JSON array of claim_id integers (visionary)
 );
 
 CREATE TABLE IF NOT EXISTS citations (
@@ -136,6 +150,7 @@ CREATE TABLE IF NOT EXISTS novelty_assessments (
     confidence          REAL NOT NULL,
     anchor_count        INTEGER NOT NULL,
     report_json         TEXT NOT NULL,        -- full per-contribution structure
+    thinking_log_json   TEXT,                 -- v0.154 — deliberation trace
     at                  TEXT NOT NULL
 );
 
@@ -148,6 +163,7 @@ CREATE TABLE IF NOT EXISTS publishability_verdicts (
     probability         REAL NOT NULL,
     kill_criterion      TEXT NOT NULL,
     report_json         TEXT NOT NULL,        -- full per-venue structure incl factors
+    thinking_log_json   TEXT,                 -- v0.154 — deliberation trace
     at                  TEXT NOT NULL,
     UNIQUE(manuscript_id, venue, at)
 );
@@ -160,6 +176,7 @@ CREATE TABLE IF NOT EXISTS attack_findings (
     severity            TEXT NOT NULL,        -- pass|minor|fatal
     evidence            TEXT,
     steelman            TEXT,                 -- required for fatal
+    thinking_log_json   TEXT,                 -- v0.154 — deliberation trace
     at                  TEXT NOT NULL
 );
 
@@ -178,6 +195,16 @@ CREATE TABLE IF NOT EXISTS hypotheses (
     n_matches           INTEGER DEFAULT 0,
     n_wins              INTEGER DEFAULT 0,
     n_losses            INTEGER DEFAULT 0,
+    -- v0.153 — idea-tree columns. tree_id groups all nodes in a
+    -- rooted hypothesis tree (root.tree_id == root.hyp_id). depth
+    -- is BFS depth from root (root=0). branch_index orders siblings
+    -- within their parent (0-based).
+    tree_id             TEXT,
+    depth               INTEGER NOT NULL DEFAULT 0,
+    branch_index        INTEGER NOT NULL DEFAULT 0,
+    -- v0.154 — structured deliberation log. Optional; rows without
+    -- a recorded thinking trace remain NULL.
+    thinking_log_json   TEXT,
     created_at          TEXT NOT NULL
 );
 
@@ -196,6 +223,12 @@ CREATE INDEX IF NOT EXISTS idx_publish_ms       ON publishability_verdicts(manus
 CREATE INDEX IF NOT EXISTS idx_attack_target    ON attack_findings(target_canonical_id);
 CREATE INDEX IF NOT EXISTS idx_hyp_run          ON hypotheses(run_id);
 CREATE INDEX IF NOT EXISTS idx_hyp_elo          ON hypotheses(elo DESC);
+-- v0.153 — composite index for fast subtree/BFS walks
+CREATE INDEX IF NOT EXISTS idx_hypotheses_tree_depth
+    ON hypotheses(tree_id, depth);
+-- v0.154 — partial index for "rows with thinking trace" lookups
+CREATE INDEX IF NOT EXISTS idx_hypotheses_has_thinking
+    ON hypotheses(hyp_id) WHERE thinking_log_json IS NOT NULL;
 
 -- v0.38: tournament evolve-loop round ledger
 CREATE TABLE IF NOT EXISTS evolution_rounds (
@@ -249,18 +282,23 @@ CREATE TABLE IF NOT EXISTS artifact_index (
 -- Graph adjacency layer. Nodes reference artifacts (or free-standing
 -- concepts / authors). Edges have a label that identifies the semantics.
 CREATE TABLE IF NOT EXISTS graph_nodes (
-    node_id             TEXT PRIMARY KEY,     -- typed: paper:<cid> | concept:<slug> | author:<s2_id> | manuscript:<mid>
-    kind                TEXT NOT NULL,        -- paper|concept|author|manuscript|experiment|topic
+    node_id             TEXT PRIMARY KEY,     -- typed: paper:<cid> | concept:<slug> | author:<s2_id> | manuscript:<mid> | institution:<ror> | funder:<openalex_id>
+    kind                TEXT NOT NULL,        -- paper|concept|author|manuscript|experiment|topic|institution|funder
     label               TEXT NOT NULL,        -- human-readable
     data_json           TEXT,                 -- optional structured payload
-    created_at          TEXT NOT NULL
+    created_at          TEXT NOT NULL,
+    -- v0.148 — store_all_data_provided. Cross-source identifiers
+    -- captured at ingest: openalex_id, doi, arxiv_id, pmid, orcid,
+    -- ror_id, s2_corpus_id, semanticscholar_id, mag_id, etc.
+    external_ids_json   TEXT,
+    source              TEXT                  -- openalex|s2|consensus|paper-search|manual
 );
 
 CREATE TABLE IF NOT EXISTS graph_edges (
     edge_id             INTEGER PRIMARY KEY AUTOINCREMENT,
     from_node           TEXT NOT NULL REFERENCES graph_nodes(node_id) ON DELETE CASCADE,
     to_node             TEXT NOT NULL REFERENCES graph_nodes(node_id) ON DELETE CASCADE,
-    relation            TEXT NOT NULL,        -- cites|cited-by|extends|refutes|uses|depends-on|coauthored|about|authored-by|in-project
+    relation            TEXT NOT NULL,        -- cites|cited-by|extends|refutes|uses|depends-on|coauthored|about|authored-by|in-project|affiliated-with|funded-by
     weight              REAL DEFAULT 1.0,
     data_json           TEXT,                 -- context snippet, quote, etc.
     created_at          TEXT NOT NULL
@@ -270,6 +308,15 @@ CREATE INDEX IF NOT EXISTS idx_artifact_kind    ON artifact_index(kind);
 CREATE INDEX IF NOT EXISTS idx_artifact_project ON artifact_index(project_id);
 CREATE INDEX IF NOT EXISTS idx_edges_from       ON graph_edges(from_node, relation);
 CREATE INDEX IF NOT EXISTS idx_edges_to         ON graph_edges(to_node, relation);
+-- v0.148 — partial indexes on new node kinds + relations.
+CREATE INDEX IF NOT EXISTS idx_graph_nodes_kind_institution
+    ON graph_nodes(kind) WHERE kind = 'institution';
+CREATE INDEX IF NOT EXISTS idx_graph_nodes_kind_funder
+    ON graph_nodes(kind) WHERE kind = 'funder';
+CREATE INDEX IF NOT EXISTS idx_graph_edges_relation_affiliated
+    ON graph_edges(relation) WHERE relation = 'affiliated-with';
+CREATE INDEX IF NOT EXISTS idx_graph_edges_relation_funded
+    ON graph_edges(relation) WHERE relation = 'funded-by';
 
 -- -----------------------------------------------------------------------
 -- Tier A1: manuscript subsystem
@@ -477,3 +524,211 @@ CREATE TABLE IF NOT EXISTS bias_assessments (
 -- Migration: ALTER TABLE runs ADD COLUMN overnight INTEGER NOT NULL DEFAULT 0;
 -- (applied by db.py on first use via IF NOT EXISTS check)
 -- -----------------------------------------------------------------------
+
+-- -----------------------------------------------------------------------
+-- v0.57 — persistence for v0.51-v0.56 outputs
+-- Closes the gap where Wide Research, debate, A5 trio (gap-analyzer,
+-- contribution-mapper, venue-match) wrote only to filesystem.
+-- Run-scoped tables; project-scoped tables live in project.db.
+-- -----------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS wide_runs (
+    wide_run_id     TEXT PRIMARY KEY,            -- e.g. wide-<8hex>
+    parent_run_id   TEXT,                        -- Deep run that triggered this Wide, if any
+    user_query      TEXT NOT NULL,
+    task_type       TEXT NOT NULL,               -- triage|read|rank|compare|survey|screen
+    n_items         INTEGER NOT NULL,
+    n_sub_agents    INTEGER NOT NULL,
+    estimated_dollar_cost REAL,
+    estimated_total_tokens INTEGER,
+    concurrency_cap INTEGER,
+    plan_path       TEXT NOT NULL,
+    synthesis_path  TEXT,
+    aborted         INTEGER NOT NULL DEFAULT 0,
+    created_at      TEXT NOT NULL,
+    completed_at    TEXT
+);
+
+CREATE TABLE IF NOT EXISTS wide_sub_agents (
+    sub_agent_id    TEXT PRIMARY KEY,            -- wide-<rid>-item-NNNN
+    wide_run_id     TEXT NOT NULL REFERENCES wide_runs(wide_run_id) ON DELETE CASCADE,
+    task_type       TEXT NOT NULL,
+    state           TEXT NOT NULL,               -- INITIALIZED|IN_PROGRESS|COMPLETE|ERROR|TIMEOUT
+    input_item_summary TEXT,
+    workspace       TEXT NOT NULL,
+    result_path     TEXT,
+    input_tokens    INTEGER,
+    output_tokens   INTEGER,
+    n_tool_calls    INTEGER,
+    duration_ms     INTEGER,
+    n_errors        INTEGER,
+    at              TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS debates (
+    debate_id       TEXT PRIMARY KEY,            -- deb-<8hex>
+    run_id          TEXT REFERENCES runs(run_id) ON DELETE SET NULL,
+    topic           TEXT NOT NULL,               -- novelty|publishability|red-team
+    target_id       TEXT NOT NULL,               -- canonical_id or manuscript_id
+    target_claim    TEXT NOT NULL,
+    verdict         TEXT NOT NULL,               -- pro|con|draw
+    delta           REAL NOT NULL,
+    kill_criterion  TEXT NOT NULL,
+    pro_mean        REAL,
+    con_mean        REAL,
+    transcript_path TEXT NOT NULL,
+    at              TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS gap_analyses (
+    analysis_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id          TEXT REFERENCES runs(run_id) ON DELETE SET NULL,
+    gap_id          TEXT NOT NULL,
+    kind            TEXT NOT NULL,               -- evidential|measurement|conceptual
+    real_or_artifact TEXT NOT NULL,              -- real|artifact|uncertain
+    addressable     INTEGER NOT NULL,
+    publishability_tier TEXT NOT NULL,           -- A|B|C|none
+    expected_difficulty TEXT NOT NULL,
+    adjacent_field_analogues_json TEXT,          -- JSON array
+    reasoning       TEXT,
+    at              TEXT NOT NULL,
+    UNIQUE(run_id, gap_id)
+);
+
+CREATE TABLE IF NOT EXISTS venue_recommendations (
+    rec_id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    manuscript_id   TEXT,
+    run_id          TEXT REFERENCES runs(run_id) ON DELETE SET NULL,
+    venue_name      TEXT NOT NULL,
+    venue_type      TEXT NOT NULL,               -- conference|journal|workshop|preprint|registered-report
+    venue_tier      TEXT NOT NULL,               -- A|B|C
+    score           REAL NOT NULL,
+    rank            INTEGER NOT NULL,
+    reasons_for_json TEXT,
+    reasons_against_json TEXT,
+    at              TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS contribution_landscapes (
+    landscape_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    manuscript_id   TEXT,
+    run_id          TEXT REFERENCES runs(run_id) ON DELETE SET NULL,
+    contribution_label TEXT NOT NULL,
+    method_distance REAL NOT NULL,
+    domain_distance REAL NOT NULL,
+    finding_distance REAL,
+    closest_anchor_canonical_id TEXT,
+    method_tokens_json TEXT,
+    domain_tokens_json TEXT,
+    finding_tokens_json TEXT,
+    at              TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS mode_selections (
+    selection_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_query      TEXT NOT NULL,
+    n_items         INTEGER NOT NULL,
+    selected_mode   TEXT NOT NULL,               -- quick|deep|wide|systematic-review
+    confidence      REAL NOT NULL,
+    explicit_override INTEGER NOT NULL DEFAULT 0,
+    reasoning       TEXT,
+    warnings_json   TEXT,
+    at              TEXT NOT NULL
+);
+
+-- v0.57 db-notify audit table — every record-write hits this for visibility
+CREATE TABLE IF NOT EXISTS db_writes (
+    write_id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    target_table    TEXT NOT NULL,
+    n_rows          INTEGER NOT NULL,
+    skill_or_lib    TEXT NOT NULL,                -- e.g. wide-research, debate, gap-analyzer
+    run_id          TEXT,                         -- optional run/wide_run/debate scope
+    detail          TEXT,
+    at              TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_wide_sub_run ON wide_sub_agents(wide_run_id);
+CREATE INDEX IF NOT EXISTS idx_debates_run ON debates(run_id);
+CREATE INDEX IF NOT EXISTS idx_gaps_run ON gap_analyses(run_id);
+CREATE INDEX IF NOT EXISTS idx_venue_recs_ms ON venue_recommendations(manuscript_id);
+CREATE INDEX IF NOT EXISTS idx_landscapes_ms ON contribution_landscapes(manuscript_id);
+CREATE INDEX IF NOT EXISTS idx_db_writes_at ON db_writes(at);
+CREATE INDEX IF NOT EXISTS idx_db_writes_table ON db_writes(target_table);
+
+-- v0.63 — citation_resolutions: resolve-citation skill output ledger
+CREATE TABLE IF NOT EXISTS citation_resolutions (
+    resolution_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id          TEXT,
+    project_id      TEXT,
+    input_text      TEXT NOT NULL,
+    partial_json    TEXT NOT NULL,
+    matched         INTEGER NOT NULL,
+    score           REAL NOT NULL,
+    threshold       REAL NOT NULL,
+    canonical_id    TEXT,
+    doi             TEXT,
+    title           TEXT,
+    year            INTEGER,
+    candidate_json  TEXT,
+    at              TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_citres_run ON citation_resolutions(run_id);
+CREATE INDEX IF NOT EXISTS idx_citres_project ON citation_resolutions(project_id);
+CREATE INDEX IF NOT EXISTS idx_citres_canonical ON citation_resolutions(canonical_id);
+
+-- v0.89 — execution traces (OpenTelemetry-style span model)
+CREATE TABLE IF NOT EXISTS traces (
+    trace_id     TEXT PRIMARY KEY,
+    run_id       TEXT,
+    started_at   TEXT NOT NULL,
+    completed_at TEXT,
+    status       TEXT NOT NULL DEFAULT 'running'
+);
+
+CREATE TABLE IF NOT EXISTS spans (
+    span_id        TEXT PRIMARY KEY,
+    trace_id       TEXT NOT NULL REFERENCES traces(trace_id) ON DELETE CASCADE,
+    parent_span_id TEXT,
+    kind           TEXT NOT NULL,
+    name           TEXT NOT NULL,
+    started_at     TEXT NOT NULL,
+    ended_at       TEXT,
+    duration_ms    INTEGER,
+    status         TEXT NOT NULL DEFAULT 'running',
+    error_kind     TEXT,
+    error_msg      TEXT,
+    attrs_json     TEXT
+);
+
+CREATE TABLE IF NOT EXISTS span_events (
+    event_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    span_id      TEXT NOT NULL REFERENCES spans(span_id) ON DELETE CASCADE,
+    name         TEXT NOT NULL,
+    payload_json TEXT,
+    at           TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_spans_trace ON spans(trace_id);
+CREATE INDEX IF NOT EXISTS idx_spans_parent ON spans(parent_span_id);
+CREATE INDEX IF NOT EXISTS idx_span_events_span ON span_events(span_id);
+CREATE INDEX IF NOT EXISTS idx_traces_run ON traces(run_id);
+
+-- v0.92 — agent quality scoring (per-run, per-agent, per-judge)
+CREATE TABLE IF NOT EXISTS agent_quality (
+    quality_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id         TEXT,
+    span_id        TEXT,
+    agent_name     TEXT NOT NULL,
+    rubric_version TEXT NOT NULL,
+    score_total    REAL NOT NULL,
+    criteria_json  TEXT NOT NULL,
+    judge          TEXT NOT NULL,
+    artifact_path  TEXT,
+    reasoning      TEXT,
+    notes          TEXT,
+    at             TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_aq_run ON agent_quality(run_id);
+CREATE INDEX IF NOT EXISTS idx_aq_agent ON agent_quality(agent_name);
+CREATE INDEX IF NOT EXISTS idx_aq_judge ON agent_quality(judge);
+CREATE INDEX IF NOT EXISTS idx_aq_at ON agent_quality(at);
