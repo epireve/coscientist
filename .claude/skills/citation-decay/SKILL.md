@@ -2,6 +2,7 @@
 name: citation-decay
 description: Read-only citation-freshness analytics — recent-citers, citation velocity, stale-paper detection. Pure SQL on graph + per-paper metadata.json years.
 when_to_use: Asking "is this paper still active in the literature?" or "which classic papers in my project are stale (no recent citers)?"
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # citation-decay

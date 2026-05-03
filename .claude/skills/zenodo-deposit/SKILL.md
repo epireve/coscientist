@@ -2,6 +2,7 @@
 name: zenodo-deposit
 description: Deposit a registered dataset to Zenodo and mint a DOI. Reads dataset_id from dataset-agent registry, packages files, calls Zenodo REST API with token from $ZENODO_TOKEN. Updates dataset state to `deposited` with DOI on success. Sandbox option for testing.
 when_to_use: User says "deposit to Zenodo", "mint DOI", "publish dataset". Requires `ZENODO_TOKEN` env var (or `ZENODO_SANDBOX_TOKEN` with `--sandbox`).
+disable-model-invocation: true
 ---
 
 # zenodo-deposit

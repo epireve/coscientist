@@ -2,6 +2,7 @@
 name: meta-research
 description: Cross-project career trajectory + publication trends + concept overlap. Read-only aggregation across all project DBs. Combines artifact_index counts, manuscript states, reading_state, and graph nodes into a single meta-view. Distinct from project-dashboard (single-project snapshot) and cross-project-memory (search lookup).
 when_to_use: User says "career trajectory", "publication trend", "what have I been working on", "cross-project overlap", "year in review", "research patterns".
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # meta-research

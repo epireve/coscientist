@@ -2,6 +2,7 @@
 name: project-dashboard
 description: Read-only single-screen view across all projects (or one). Shows active projects, recent activity, papers by reading state, manuscripts in flight, open audit issues, runs in progress.
 when_to_use: Quick "where am I" check across your research life. Daily / weekly skim.
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # project-dashboard

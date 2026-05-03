@@ -2,6 +2,7 @@
 name: funding-graph
 description: Read-only aggregation — papers per funder, papers per institution, funder-author overlap, dominant-funder detection. Pure SQL.
 when_to_use: Asking "who funded this work?", "which institutions dominate this topic?", "is this author dependent on one funder?".
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # funding-graph

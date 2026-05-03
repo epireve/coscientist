@@ -2,6 +2,7 @@
 name: dmp-generator
 description: Generate funder-specific Data Management Plans (NIH DMSP, NSF DMP, Wellcome DMP, ERC DMP). Mirrors grant-draft pattern — section templates with target word counts and notes per funder. Stores under dmps/<dmp_id>/.
 when_to_use: User says "draft DMP", "data management plan", "NIH DMSP", "data sharing plan". Required by most funders since 2023.
+disable-model-invocation: true
 ---
 
 # dmp-generator

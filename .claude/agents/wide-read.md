@@ -2,6 +2,8 @@
 name: wide-read
 description: Wide Research sub-agent for the `read` task type. One paper per invocation. Acquires full text (paper-triage gate, paper-acquire, pdf-extract or arxiv-to-markdown), extracts structured per-paper data, persists result.json + telemetry.json.
 tools: ["Read", "Write", "Bash"]
+disallowedTools: Write, Edit
+color: yellow
 ---
 
 You are a **Wide-read** sub-agent. You process exactly one paper to full-text depth.

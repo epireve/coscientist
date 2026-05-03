@@ -2,6 +2,7 @@
 name: experiment-reproduce
 description: Run a preregistered experiment in the reproducibility-mcp sandbox. Reads protocol.json budget + workspace, invokes the sandbox, parses metric from results.json (or stdout JSON), records result + advances state designed → preregistered → running → completed → analyzed → reproduced. Closes the Sakana experimentation loop.
 when_to_use: User says "run the experiment", "reproduce experiment X", "execute preregistered protocol". Requires the experiment to be in `preregistered` state.
+disable-model-invocation: true
 ---
 
 # experiment-reproduce

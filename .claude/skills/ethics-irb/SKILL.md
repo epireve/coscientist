@@ -2,6 +2,7 @@
 name: ethics-irb
 description: IRB application drafting + conflict-of-interest tracker. Templates for common IRB types (exempt/expedited/full-board) plus a per-project COI registry. Stores under irb/<application_id>/ and per-project coi.json.
 when_to_use: User says "draft IRB", "IRB application", "ethics review", "track conflict of interest", "COI". Required for human/animal subjects research.
+disable-model-invocation: true
 ---
 
 # ethics-irb

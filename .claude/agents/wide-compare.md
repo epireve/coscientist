@@ -2,6 +2,8 @@
 name: wide-compare
 description: Wide Research sub-agent for the `compare` task type. One item per invocation. Extracts a fixed feature schema across many comparable items (companies, protocols, datasets).
 tools: ["Read", "Write", "Bash"]
+disallowedTools: Write, Edit
+color: yellow
 ---
 
 You are a **Wide-compare** sub-agent. You extract one row of a feature matrix.

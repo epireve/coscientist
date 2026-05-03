@@ -2,6 +2,7 @@
 name: health
 description: Single-shot diagnostics dump across the entire Coscientist stack. Walks every run DB and surfaces active runs, stale/hung spans, tool-call latency by name (slowest first), per-agent quality leaderboard (lowest mean first), and total failed-span count. Pure read-only aggregation over v0.93–v0.105 instrumentation. One command, one operator view.
 when_to_use: User says "health check", "is anything stuck", "show me what's running", "tool latency", "agent quality across runs", "failed spans", "what's broken". Also the recommended first stop during a live `/deep-research` smoke test or daily review.
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # health

@@ -2,6 +2,7 @@
 name: field-trends-analyzer
 description: Read-only aggregation over the project graph to surface trending concepts, paper-citation momentum, and rising authors. Pure SQL on graph_nodes + graph_edges. Computes per-concept paper count, per-paper in-degree (cites), recency-weighted scores, and identifies "rising" vs "declining" topics by comparing two time windows.
 when_to_use: User says "what topics are trending", "rising concepts", "field momentum", "what's hot", "which papers are gaining citations". After reference-agent's populate_concepts.py has run.
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # field-trends-analyzer

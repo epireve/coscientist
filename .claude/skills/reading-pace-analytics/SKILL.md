@@ -2,6 +2,7 @@
 name: reading-pace-analytics
 description: Read-only velocity metrics from reading_state across projects — papers per week, current backlog by state, time-to-read distribution, and weekly trend. Pure aggregation; no writes.
 when_to_use: User asks "how fast am I reading", "what's my paper backlog", "reading pace", "papers per week", or wants to see reading-velocity trends across projects.
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # reading-pace-analytics

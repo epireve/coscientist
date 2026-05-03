@@ -2,6 +2,7 @@
 name: audit-rotate
 description: Rotate Coscientist's two append-only audit logs by size or age. Renames the current log to `<name>.<UTC-timestamp>` and starts a fresh empty file in its place. Refuses to delete archives — that's a deliberate human decision. Pure stdlib, atomic rename, never loses data. Distinct from `audit-query` which is read-only.
 when_to_use: Logs have grown large enough to slow down `audit-query` (or you just want a clean baseline before a forensic exercise). Use after `audit-query summary` so you know what you're freezing. Run periodically, or once before a destructive Docker batch.
+disable-model-invocation: true
 ---
 
 # audit-rotate

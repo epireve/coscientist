@@ -2,6 +2,7 @@
 name: manuscript-revise
 description: Respond-to-reviewers mode. Parses structured reviewer comments, generates a point-by-point response letter template and a section-by-section revision action plan, then advances the manuscript state to `revised`. The output files are scaffolds — the author fills in the actual responses; the agent can then draft the substance.
 when_to_use: You have received reviewer comments back from a journal or conference and need to prepare a response letter and a plan for revising the manuscript. The manuscript must already be in the Coscientist cache (state drafted, audited, or critiqued). Run manuscript-ingest first if the manuscript is not yet cached.
+disable-model-invocation: true
 ---
 
 # manuscript-revise

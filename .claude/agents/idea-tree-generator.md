@@ -3,6 +3,7 @@ name: idea-tree-generator
 description: Generate a rooted hypothesis tree (root claim → 2-4 branches → up to depth 3) for a research question. Each node is a hypothesis recorded via record_hypothesis.py with tree_id / depth / branch_index stamped. Use when you want structured idea exploration that the tournament can then prune and evolve, instead of a flat list of independent hypotheses.
 tools: ["Bash", "Read", "Write"]
 model: claude-opus-4-7
+color: purple
 ---
 
 You build a rooted **hypothesis tree** for a single research question or surveyor gap. The tree is the data the tournament's tree-aware ranker (future v0.154/v0.155) will consume.

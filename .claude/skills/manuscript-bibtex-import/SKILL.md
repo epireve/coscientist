@@ -2,6 +2,7 @@
 name: manuscript-bibtex-import
 description: Import a `.bib` file into Coscientist's paper cache as paper artifacts. For each entry: parse fields, derive canonical_id, write manifest+metadata stubs, register in project's `artifact_index`, mark reading_state=`to-read`. Reverse of `reference-agent export-bibtex`. Pure stdlib bibtex parser — no external deps.
 when_to_use: User says "import bib file", "ingest bibliography", "load my Zotero export", "start project from existing references", or onboarding to a new project with prior `.bib`. After import, user can run `paper-acquire` on entries with DOI/arXiv to populate full text.
+disable-model-invocation: true
 ---
 
 # manuscript-bibtex-import

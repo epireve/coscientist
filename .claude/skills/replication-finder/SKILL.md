@@ -2,6 +2,7 @@
 name: replication-finder
 description: Read-only heuristic that flags replications, contradictions, and follow-ups for a target paper using citation-context stems + claim Jaccard.
 when_to_use: After a paper is in the project graph, ask "who tried to replicate this?" or "did anyone fail this?"
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # replication-finder

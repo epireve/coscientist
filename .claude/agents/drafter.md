@@ -5,6 +5,8 @@ tools:
   - Read
   - Write
   - Bash
+skills: [manuscript-draft, writing-style]
+color: green
 ---
 
 # drafter

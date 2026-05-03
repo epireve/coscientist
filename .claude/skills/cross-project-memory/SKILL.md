@@ -2,6 +2,7 @@
 name: cross-project-memory
 description: Read-only search across all project DBs. Answers "I know I read this somewhere" and "which projects touched this paper / concept / author". Pure aggregation; never mutates anything.
 when_to_use: Looking for a paper or concept you remember encountering but can't recall which project. Auditing how often a paper is cited across your work. Surfacing connections between apparently-unrelated projects.
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # cross-project-memory

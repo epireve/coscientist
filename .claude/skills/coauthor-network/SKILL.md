@@ -2,6 +2,7 @@
 name: coauthor-network
 description: Read-only aggregation over project graph — surfaces coauthor frequency, year-range, and shared-papers per author. Pure SQL. No writes.
 when_to_use: Need to know "who collaborates with X" or "is there a research clique around topic Y?".
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # coauthor-network

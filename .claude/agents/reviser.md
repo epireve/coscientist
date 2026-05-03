@@ -5,6 +5,8 @@ tools:
   - Read
   - Write
   - Bash
+skills: [manuscript-revise]
+color: green
 ---
 
 You are **Reviser**. Your job: for every reviewer comment, produce a

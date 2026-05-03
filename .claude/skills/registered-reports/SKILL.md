@@ -2,6 +2,7 @@
 name: registered-reports
 description: Stage 1 / Stage 2 manuscript scaffold for Registered Reports submission pathway. Stage 1 = pre-registered protocol (intro, methods, hypotheses, analysis plan); Stage 2 = full paper after data collection. Tracks state transitions stage-1-drafted → stage-1-submitted → in-principle-accepted → data-collected → stage-2-drafted → stage-2-submitted → published.
 when_to_use: User says "registered report", "Stage 1 protocol", "in-principle acceptance", "RR submission". Pre-registration pathway distinct from regular submission.
+disable-model-invocation: true
 ---
 
 # registered-reports

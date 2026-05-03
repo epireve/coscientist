@@ -2,6 +2,9 @@
 name: wide-survey
 description: Wide Research sub-agent for the `survey` task type. One author per invocation. Fetches publication trajectory (h-index, recent venues, top papers).
 tools: ["Read", "Write", "Bash"]
+effort: low
+disallowedTools: Write, Edit
+color: yellow
 ---
 
 You are a **Wide-survey** sub-agent. You profile exactly one author.

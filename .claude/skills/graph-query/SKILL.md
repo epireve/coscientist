@@ -2,6 +2,7 @@
 name: graph-query
 description: Read-only CLI primitives over the per-project citation/concept/author graph. Surfaces `lib/graph.py` (BFS walk, neighbors, in-degree, hubs) plus path-finding so sub-agents can answer "who cites paper X up to depth 2", "what concepts connect papers A and B", "which papers are central in this corpus", "who are paper X's coauthors". Pure SQL on `graph_nodes` + `graph_edges` tables. Never mutates anything.
 when_to_use: Sub-agents (architect, visionary, weaver) need to walk citations or concept graphs without hand-rolling SQL. User asks "who cites X", "central papers in topic Y", "concept path between two papers", "co-author cluster". Counterpart of `reference-agent` (which writes the graph).
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # graph-query

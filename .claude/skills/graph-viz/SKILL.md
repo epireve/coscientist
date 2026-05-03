@@ -2,6 +2,7 @@
 name: graph-viz
 description: Render the per-project citation/concept/author graph as a mermaid markdown block. Read-only — surfaces `lib/graph_viz.py` over the project DB (`graph_nodes` + `graph_edges`). Different node shapes per kind (paper rectangle, concept circle, author flag, manuscript hexagon). Truncates dense graphs by in-degree, hides labels when overcrowded. Convenience modes for concept subgraphs and paper citation lineage. Counterpart of `graph-query` (which returns JSON walks).
 when_to_use: User asks to "visualize the graph", "show citation graph as mermaid", "draw the concept network", "lineage of paper X", "subgraph around concept Y". Useful in manuscript appendices and journal entries where a static, GitHub-rendered graph is wanted. Never writes anything — pure renderer.
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # graph-viz

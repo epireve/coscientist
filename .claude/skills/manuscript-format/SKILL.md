@@ -2,6 +2,7 @@
 name: manuscript-format
 description: Pandoc-driven export of a manuscript draft (source.md) to venue-specific formats — LaTeX (.tex), Word (.docx), and optionally PDF. Strips placeholder sections before export, writes output under the manuscript artifact's exports/ subdirectory.
 when_to_use: You have a manuscript artifact with a source.md and want to produce a submission-ready file in a venue-specific format. Use after manuscript-draft has filled the sections you want exported, or after manuscript-ingest has created the artifact. Supports neurips, acl, nature, imrad, arxiv, and docx as export targets.
+disable-model-invocation: true
 ---
 
 # manuscript-format

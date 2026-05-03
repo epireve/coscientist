@@ -2,6 +2,7 @@
 name: claim-cluster
 description: Read-only Jaccard clustering of claims across project papers — surfaces shared findings, outlier claims, claim-density heat. Pure stdlib heuristic.
 when_to_use: Asking "which papers in my project assert the same finding?" or "what's the consensus claim in this set?"
+allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 
 # claim-cluster

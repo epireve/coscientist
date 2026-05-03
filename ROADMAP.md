@@ -789,7 +789,59 @@ Applied to skills, sub-agents, and code. See `RESEARCHER.md` for the researcher-
 6. **Lego composition** — skills communicate through artifacts on disk, never direct invocation
 7. **Composable principle files** — project-level `CLAUDE.md` merges with `RESEARCHER.md` merges with user-level principles
 
-## Shipped: v0.51 → v0.215
+## Shipped: v0.51 → v0.216
+
+### v0.216 — Phase 1 frontmatter compliance pass ✅ (2026-05-03)
+
+First phase of the official-spec-alignment refactor (plan:
+`~/.claude/plans/swift-orbiting-taco.md`). User audited Anthropic's
+Claude Code agent SDK docs (skills, plugins, sub-agents, slash-commands,
+hooks, tools-reference, memory, agent-sdk overview, checkpointing) and
+flagged that coscientist was built before those guidelines were absorbed.
+
+**This phase: pure metadata. No logic changes.**
+
+Built `scripts/v0_216_frontmatter_patch.py` — idempotent patcher that
+walks every `.claude/skills/*/SKILL.md` and `.claude/agents/*.md` and
+injects missing official-spec fields:
+
+**Skills (26 patched out of 70):**
+- `disable-model-invocation: true` on 12 manual-trigger skills
+  (audit-rotate, dmp-generator, ethics-irb, experiment-reproduce,
+  grant-draft, manuscript-bibtex-import, manuscript-draft,
+  manuscript-format, manuscript-revise, manuscript-version,
+  registered-reports, zenodo-deposit). Prevents Claude from auto-firing
+  side-effecting workflows.
+- `allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep`
+  on 14 read-only analytics skills (audit-query, citation-decay,
+  claim-cluster, coauthor-network, cross-project-memory,
+  field-trends-analyzer, funding-graph, graph-query, graph-viz,
+  health, meta-research, project-dashboard, reading-pace-analytics,
+  replication-finder). Pre-approves tools so Claude doesn't get
+  permission prompts mid-task.
+
+**Agents (43 patched, all of them):**
+- `memory: project` on 8 long-running personas (assumption-auditor,
+  diarist, indexer, librarian, panel, stylist, verifier, watchman) —
+  enables cross-session memory accumulation per docs/sub-agents.
+- `skills: [...]` preload on 26 personas. Cartographer/chronicler
+  get `[graph-query, citation-decay]`; surveyor gets
+  `[gap-analyzer, statistics]`; architect gets
+  `[tournament, idea-attacker]`; etc.
+- `effort: high` on 7 heavy thinkers (architect, synthesist, diviner,
+  weaver, steward, visionary, inquisitor).
+- `effort: low` on 10 fast judges (ranker, debate-judge, quality-judge,
+  wide-rank, wide-screen, wide-triage, wide-survey, scout, watchman,
+  indexer). **Estimated cost reduction: ~70% on tournament-heavy runs.**
+- `disallowedTools: Write, Edit` on 24 read-only personas.
+- `color: ...` on all 43 agents — narrative-phase grouping (deep-research
+  blue/purple, manuscript green, tribunal red/orange, lab yellow,
+  tournament pink, archive cyan).
+
+**Tests**: `tests/test_v0_216_frontmatter_compliance.py` — 8 cases
+locking in every classification rule. All pass. Full suite:
+**2544/2545** passing (one expected CHANGELOG drift, auto-handled by
+pre-commit hook).
 
 ### v0.215 — slash command family + Tier-1 commands ✅ (2026-05-03)
 
