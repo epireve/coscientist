@@ -789,7 +789,31 @@ Applied to skills, sub-agents, and code. See `RESEARCHER.md` for the researcher-
 6. **Lego composition** — skills communicate through artifacts on disk, never direct invocation
 7. **Composable principle files** — project-level `CLAUDE.md` merges with `RESEARCHER.md` merges with user-level principles
 
-## Shipped: v0.51 → v0.223
+## Shipped: v0.51 → v0.224
+
+### v0.224 — unit tests for the v0.222 health split ✅ (2026-05-03)
+
+Audit deferred item — claimed "30 lib modules need unit tests".
+Direct survey: only 3 modules genuinely lacked any test reference
+(`health_thresholds.py`, `health_collect.py`, `health_render.py` —
+all created in v0.222). Other lib modules already covered via
+integration tests.
+
+Added `tests/test_v0_224_health_split_units.py` — 17 cases
+across 5 classes:
+
+- `LoadThresholdsTests` (6) — defaults, global override, kwargs
+  override, unknown-key filter, wrong-type filter, int→float promo
+- `EvaluateAlertsTests` (4) — clean report = no alerts, stale-span
+  warn, failed-span crit, tool-error-rate crit
+- `CollectEmptyCacheTests` (2) — empty cache zeroed report,
+  uninstrumented-DB counted separately
+- `McpErrorRatesTests` (2) — empty runs dir, aggregates by
+  source key
+- `RenderMdTests` (3) — empty report → no-data marker, alerts
+  banner first, active-runs section
+
+Full suite 2619/2619 green.
 
 ### v0.223 — CLAUDE.md compress 268 → 164 lines ✅ (2026-05-03)
 
