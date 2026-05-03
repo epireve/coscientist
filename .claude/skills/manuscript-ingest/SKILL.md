@@ -2,6 +2,7 @@
 name: manuscript-ingest
 description: Ingest a markdown manuscript into the Coscientist cache as a `manuscript` artifact. First step before any manuscript-audit, manuscript-critique, or manuscript-reflect run.
 when_to_use: You have a draft `.md` file and want to analyze it. Creates the artifact directory, copies the source, registers it in the project's artifact_index if a project_id is given.
+argument-hint: <source.md> [--manuscript-id <mid>]
 ---
 
 # manuscript-ingest

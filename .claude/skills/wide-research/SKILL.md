@@ -2,6 +2,7 @@
 name: wide-research
 description: Process N items (10-250) in parallel via orchestrator-worker fan-out. Modes — triage / read / rank / compare / survey / screen. Use when the task is "do this N times across these items" — paper-by-paper screening, per-paper full-text extraction, per-author publication maps, per-protocol feature comparison. Distinct from `deep-research` (single field-level synthesis); complementary via Wide → Deep handoff.
 when_to_use: User has a list of items (papers, authors, protocols, datasets) and wants the same structured analysis applied to each. Auto-trigger when prompt contains "for each of these N", "process this list", "screen these papers", "compare across", or specifies an item count >10.
+argument-hint: <task-spec.json>
 ---
 
 # wide-research

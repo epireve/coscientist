@@ -2,6 +2,7 @@
 name: manuscript-critique
 description: Gate-enforced four-reviewer critique of a user's manuscript. Each reviewer persona (methodological, theoretical, big-picture, nitpicky) produces structured findings with severity. Fatal findings require a steelman paragraph. Delivers a committed overall verdict.
 when_to_use: You have an ingested manuscript and want reviewer-style critique before submitting. Used by the `manuscript-critic` sub-agent.
+argument-hint: <manuscript_id>
 ---
 
 # manuscript-critique

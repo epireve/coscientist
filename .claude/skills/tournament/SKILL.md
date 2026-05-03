@@ -2,6 +2,7 @@
 name: tournament
 description: Pairwise Elo tournament over candidate hypotheses, plus evolutionary mutation of top-ranked candidates (Google AI Co-scientist pattern). Sharpens hypothesis quality by self-play; tracks parent→child lineage so you can see why a winning idea descended from earlier ones.
 when_to_use: After `theorist` and `thinker` produce hypotheses in a deep-research run. Run pairwise matches, see the leaderboard, ask `evolver` to mutate the top-K, repeat.
+argument-hint: <run_id> [--top-k N]
 ---
 
 # tournament

@@ -2,6 +2,7 @@
 name: reference-agent
 description: Bidirectional bridge between Coscientist's paper cache and Zotero + citation-graph operations. Sync Zotero items into paper artifacts, export BibTeX for a manuscript or run, track reading state per paper per project, flag retractions. Cashes in on the graph layer from v0.3.
 when_to_use: You need to sync Zotero; export citations for a manuscript; know which papers you've read; or check whether any cited paper has been retracted.
+argument-hint: <command> [--manuscript-id <mid>] [--project-id <pid>]
 ---
 
 # reference-agent

@@ -2,6 +2,7 @@
 name: manuscript-audit
 description: Gate-enforced per-claim audit of a user's manuscript. Extracts every substantive claim, checks each against its cited sources, flags overclaim / uncited / unsupported / outdated / retracted. Refuses empty reports and hedge words.
 when_to_use: You have an ingested manuscript artifact and want to know which of its claims hold up against the literature it cites. Used by the `manuscript-auditor` sub-agent.
+argument-hint: <manuscript_id>
 ---
 
 # manuscript-audit

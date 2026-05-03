@@ -11,6 +11,30 @@ generator output, so a stale `CHANGELOG.md` will fail CI.
 
 Versions are listed newest first.
 
+## v0.232 — argument-hint coverage on CLI-flavored skills (2026-05-03)
+
+Slash-command audit found 17 user-invocable skills with CLI-style
+args (`<run_id>`, `--run-id <X>`, `<paper_id>`, etc.) but no
+`argument-hint:` in YAML frontmatter — meaning slash-completion
+gives zero usage hint when typing `/skill-name`.
+
+Added `argument-hint:` to:
+
+- 9 deep-research / research skills: `audit-query`,
+  `gap-analyzer`, `paper-discovery`, `reference-agent`,
+  `research-eval`, `search-strategy-critique`,
+  `systematic-review`, `tournament`, `wide-research`
+- 8 manuscript skills: `manuscript-audit`, `manuscript-critique`,
+  `manuscript-draft`, `manuscript-format`, `manuscript-ingest`,
+  `manuscript-reflect`, `manuscript-revise`,
+  `manuscript-version`
+- 1 deep-research skill (parity with legacy `commands/deep-research.md`)
+
+**Tests**: `tests/test_v0_232_skill_arg_hints.py` — locks coverage
+so future skills with `<run_id>` / `--run-id` patterns must declare
+`argument-hint:`. Read-only analytics + dashboard skills exempted
+explicitly. Full suite 2641/2641 green.
+
 ## v0.231 — bin/coscientist CLI dispatcher (2026-05-03)
 
 Plan section D mentioned exposing `coscientist health` /

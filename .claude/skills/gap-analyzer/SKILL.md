@@ -2,6 +2,7 @@
 name: gap-analyzer
 description: Operationalizes Surveyor's gap output. For each gap, decides real-vs-artifact, addressable, publishability tier (A/B/C/none), adjacent-field analogues, and expected difficulty. Pure heuristic; LLM-free analysis.
 when_to_use: After a deep-research run produces Surveyor output (Phase 1c) — the user wants per-gap structured analysis to triage which gaps are worth turning into projects. Or after manuscript-reflect identifies gaps in the user's own draft.
+argument-hint: --run-id <run_id> [--write-output]
 ---
 
 # gap-analyzer

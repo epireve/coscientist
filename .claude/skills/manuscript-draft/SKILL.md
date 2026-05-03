@@ -2,6 +2,7 @@
 name: manuscript-draft
 description: Create a new manuscript from scratch using a venue template. Generates a structured outline (outline.json) and a source.md with placeholder sections, then fills sections one at a time with tracked word counts and cite-key harvesting. Markdown-first; export to LaTeX/docx via `manuscript-format` (future).
 when_to_use: You are starting a new paper and want a structured scaffold. Pick a venue template (imrad, neurips, acl, nature, thesis) to get the correct section order, word targets, and venue-specific notes. Use `section` to fill each section incrementally; use `status` to monitor progress. Feed the completed source.md to `manuscript-ingest` for audit/critique/reflect.
+argument-hint: <outline-path> [--manuscript-id <mid>]
 disable-model-invocation: true
 ---
 

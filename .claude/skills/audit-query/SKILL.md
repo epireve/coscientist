@@ -2,6 +2,7 @@
 name: audit-query
 description: Read-only query + summary over Coscientist's two append-only audit logs — `audit.log` (PDF fetches by paper-acquire / institutional-access) and `sandbox_audit.log` (every Docker run by reproducibility-mcp). Pure stdlib aggregator. Surfaces per-domain fetch rates, per-tier success counts, recent failures, sandbox error_class breakdown, OOM/timeout incidents, and total wall-time consumed. Distinct from `project-dashboard` (per-project view) — this one is global to the Coscientist cache.
 when_to_use: User says "audit summary", "fetch stats", "sandbox usage", "what failed recently", "how many PDFs have I downloaded", "Docker time spent", or wants a forensic view of the audit logs without grepping by hand. Also useful before deleting/rotating logs — see what you'd lose.
+argument-hint: <command> [--paper-id <pid>] [--since <iso>]
 allowed-tools: Read Bash(sqlite3 *) Bash(uv run python *) Glob Grep
 ---
 

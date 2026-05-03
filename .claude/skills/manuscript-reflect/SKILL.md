@@ -2,6 +2,7 @@
 name: manuscript-reflect
 description: Gate-enforced "ultrathink your own work" skill. Exposes the argument structure, makes implicit assumptions explicit, maps the evidence chain, identifies the weakest link, and proposes the single experiment that would most strengthen the work.
 when_to_use: You want to understand what your manuscript is actually arguing — structurally — before submitting or before designing next experiments. Used by the `manuscript-reflector` sub-agent.
+argument-hint: <manuscript_id>
 ---
 
 # manuscript-reflect

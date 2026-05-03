@@ -2,6 +2,7 @@
 name: search-strategy-critique
 description: Adversarial critique of a deep-research run's search strategy BEFORE Phase 1 fires. Inquisitor-style attack on the framework + sub-area decomposition itself, not the hypotheses produced from it. Catches blind spots, missing anti-coverage, redundant sub-areas, premature commitments before they cost two phases of bad foundation.
 when_to_use: After `db.py set-strategy` has locked a search strategy for a run, BEFORE the orchestrator dispatches cartographer/chronicler/surveyor harvests. Returns critique JSON; orchestrator decides whether to surface to user, auto-revise, or proceed with acknowledged risks.
+argument-hint: --run-id <run_id>
 ---
 
 # search-strategy-critique

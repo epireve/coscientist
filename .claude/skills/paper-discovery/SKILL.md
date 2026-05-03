@@ -2,6 +2,7 @@
 name: paper-discovery
 description: Search for academic papers across Consensus, paper-search MCP, academic MCP, Semantic Scholar, and OpenAlex (v0.145). Deduplicate results, write artifact stubs, and return a ranked shortlist. First step of any research task.
 when_to_use: Starting a new research thread, or explicitly asked to "find papers on X". Not for fetching PDFs — that's `paper-acquire`. Not for reading — that's `arxiv-to-markdown` or `pdf-extract`.
+argument-hint: <query> [--limit N]
 ---
 
 # paper-discovery

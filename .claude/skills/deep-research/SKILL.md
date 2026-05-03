@@ -2,6 +2,7 @@
 name: deep-research
 description: End-to-end research on a question using the 10-agent Expedition pipeline (Scout → Cartographer → Chronicler → Surveyor → Synthesist → Architect → Inquisitor → Weaver → Visionary → Steward). Discovers papers, triages them, acquires the full-text ones, extracts them, runs 10 sequential sub-agents with 3 human-in-the-loop breaks, and produces a Research Brief + six-section Understanding Map.
 when_to_use: The user provides a research question and wants a thorough, traceable investigation — not just a quick literature search. Use `paper-discovery` alone for simple lookups.
+argument-hint: "<research question>" | --resume <run_id>
 ---
 
 # deep-research

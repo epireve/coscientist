@@ -2,6 +2,7 @@
 name: manuscript-version
 description: Lightweight version history for manuscript drafts. Snapshots source.md at key moments, lists the version log, diffs two snapshots by word count and section, and restores a prior snapshot. No git required — snapshots are stored under manuscripts/<mid>/versions/.
 when_to_use: You have a manuscript artifact and want to checkpoint the current source.md before a major rewrite, compare two drafts to see how much changed per section, browse the version history, or undo an edit by restoring an earlier snapshot.
+argument-hint: <manuscript_id> <command> [<version-tag>]
 disable-model-invocation: true
 ---
 

@@ -2,6 +2,7 @@
 name: research-eval
 description: Audit a deep-research run for reference quality and claim attribution. Ports SEEKER's `eval_references.py` + `eval_claims.py`. Reports dangling references, uncited claims, and low-confidence attributions.
 when_to_use: After `/deep-research` finishes a run (or after any phase), before trusting the Research Brief or Understanding Map. Also useful to spot-check any markdown doc with a bibliography.
+argument-hint: --run-id <run_id>
 ---
 
 # research-eval

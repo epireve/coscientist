@@ -2,6 +2,7 @@
 name: systematic-review
 description: PRISMA-compliant systematic literature review. Protocol-first: declare scope and inclusion/exclusion criteria before searching. Then run exhaustive search, two-stage title/abstract + full-text screening, data extraction, bias assessment, and PRISMA flow diagram generation. Self-contained per-protocol SQLite DB.
 when_to_use: You need a rigorous, auditable, reproducible survey of a body of literature. Use when the question demands exhaustive search (not just convenience sampling), explicit inclusion/exclusion criteria, and a transparent audit trail of every screening decision. Produces a PRISMA flow diagram and structured extraction tables ready for narrative or quantitative synthesis.
+argument-hint: <command> [--protocol <path>]
 ---
 
 # systematic-review
