@@ -11,6 +11,37 @@ generator output, so a stale `CHANGELOG.md` will fail CI.
 
 Versions are listed newest first.
 
+## v0.231 — bin/coscientist CLI dispatcher (2026-05-03)
+
+Plan section D mentioned exposing `coscientist health` /
+`coscientist run-audit` as bare commands instead of
+`uv run python -m lib.health` incantations. v0.231 ships the
+single dispatcher.
+
+**`bin/coscientist`** — pure-shell wrapper, mode 0755. Resolves
+repo root via script location so it works from inside the repo,
+on `$PATH` after install, or by absolute path. Routes:
+
+  health                One-shot diagnostics (lib.health)
+  status [--run-id X]   Trace status (lib.trace_status)
+  trace --run-id X      Full timeline (lib.trace_render)
+  quality summary       Per-agent rubric scores
+  quality leaderboard   Cross-run leaderboard
+  quality drift         Drift analysis
+  run-audit --run-id X  Combined trace_status + health
+  db <subcommand>       Pass-through to deep-research/scripts/db.py
+  plugin-checksums      Plugin manifest checksum tooling
+  version               Highest v0.N from ROADMAP shipped headers
+  help                  Command list
+
+Each route runs `uv run python -m ...` from the repo root —
+keeps everything reproducible.
+
+**Tests**: `tests/test_v0_231_bin_wrapper.py` — 8 cases covering
+shape (exists, executable, help output, no-args defaults to help,
+unknown commands fail) and routing (version, health, status, db
+init pass-through). Full suite 2640/2640 green.
+
 ## v0.230 — agent model declarations across all 43 personas (2026-05-03)
 
 Audit found 4/43 agents declared `model:`. v0.230 brings every

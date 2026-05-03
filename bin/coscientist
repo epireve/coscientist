@@ -1,0 +1,105 @@
+#!/bin/bash
+# v0.231 — coscientist CLI dispatcher.
+#
+# Single entrypoint exposing the most-used lib.* modules + skill
+# scripts as bare commands. Resolves the repo root via the script's
+# own location so this works whether invoked from inside the repo,
+# via $PATH (after `claude plugin install`), or by absolute path.
+#
+# Usage:
+#     coscientist health [--format md|json] [--max-age 30]
+#     coscientist status [--run-id <rid>] [--format md|json]
+#     coscientist quality summary --db <path>
+#     coscientist quality leaderboard
+#     coscientist quality drift [--window N]
+#     coscientist run-audit --run-id <rid>
+#     coscientist trace --run-id <rid>
+#     coscientist db <subcommand> ...     # passes to db.py
+#     coscientist plugin-checksums [generate|verify]
+#     coscientist help
+#
+# Each sub-command is a thin shell wrapper around `uv run python -m
+# lib.<module>` or a skill script — keeps everything reproducible.
+
+set -e
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO="$( cd "$SCRIPT_DIR/.." && pwd )"
+cd "$REPO"
+
+cmd="${1:-help}"
+shift || true
+
+case "$cmd" in
+  health)
+    exec uv run python -m lib.health "$@"
+    ;;
+  status|trace-status)
+    exec uv run python -m lib.trace_status "$@"
+    ;;
+  trace)
+    exec uv run python -m lib.trace_render "$@"
+    ;;
+  quality)
+    exec uv run python -m lib.agent_quality "$@"
+    ;;
+  run-audit)
+    # Compose: trace_status --run-id X --format md + lib.health
+    if [ -z "${1:-}" ]; then
+      echo "usage: coscientist run-audit --run-id <rid>" >&2
+      exit 2
+    fi
+    uv run python -m lib.trace_status "$@"
+    echo
+    uv run python -m lib.health --format md
+    ;;
+  db)
+    # Pass through to deep-research db.py.
+    exec uv run python \
+      "$REPO/.claude/skills/deep-research/scripts/db.py" "$@"
+    ;;
+  plugin-checksums)
+    exec uv run python -m lib.plugin_checksums "$@"
+    ;;
+  version|--version|-v)
+    # Read VERSION marker if present; else fallback to highest
+    # `### v0.N` shipped header in ROADMAP.md (numeric sort on N).
+    if [ -f "$REPO/VERSION" ]; then
+      cat "$REPO/VERSION"
+    else
+      grep -E '^### v0\.[0-9]+' "$REPO/ROADMAP.md" \
+        | sed -E 's/^### (v0\.[0-9]+).*/\1/' \
+        | sort -t. -k2,2n \
+        | tail -1
+    fi
+    ;;
+  help|--help|-h|"")
+    cat <<'EOF'
+coscientist — research-agent toolkit CLI
+
+Usage:
+  coscientist <command> [args...]
+
+Commands:
+  health                One-shot diagnostics dump (lib.health)
+  status [--run-id X]   Trace status across runs (lib.trace_status)
+  trace --run-id X      Full timeline render (lib.trace_render)
+  quality summary       Per-agent rubric scores
+  quality leaderboard   Cross-run agent quality leaderboard
+  quality drift         Per-agent score drift over time
+  run-audit --run-id X  Combined trace_status + health for a run
+  db <subcommand>       Pass-through to deep-research/scripts/db.py
+                        (init, resume, record-phase, ...)
+  plugin-checksums      Plugin manifest checksum tooling
+  version               Print latest version from ROADMAP
+  help                  This message
+
+All commands run via `uv run python -m ...` from the repo root.
+EOF
+    ;;
+  *)
+    echo "coscientist: unknown command '$cmd'" >&2
+    echo "run 'coscientist help' for usage" >&2
+    exit 2
+    ;;
+esac
